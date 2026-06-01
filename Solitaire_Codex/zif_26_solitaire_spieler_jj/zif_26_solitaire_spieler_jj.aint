@@ -1,0 +1,27 @@
+INTERFACE zif_26_solitaire_spieler_jj PUBLIC.
+
+"!Diese Methode ermöglicht es dem Spieler eine Karte vom Talon zu ziehen.
+  METHODS ziehe_vom_vorrat.
+
+"!Diese Methode ermöglicht es dem Spieler einne Menge an Karten von einem Stapel auf einen anderen Stapel zu verschieben.
+  METHODS verschiebe_karte
+    IMPORTING
+      iv_karten_block TYPE REF TO zcl_26_solitaire_stapel_jj
+      iv_auf_stapel   TYPE REF TO zcl_26_solitaire_stapel_jj
+      iv_von_stapel   TYPE REF TO zcl_26_solitaire_stapel_jj.
+
+"!Diese Methode ermöglicht es dem Spieler seinen Ablagestapel zu reseten, sodass die Karten umgedreht werden und wieder auf dem Talon landen.
+  METHODS reset_ablage
+    IMPORTING it_karten TYPE zif_26_solitaire_spiel_jj=>ablagekarten.
+
+"!Diese Methode ermöglicht es eine Karte auf einen Foundationstapel (Zielstapel) zu verschieben.
+  METHODS lege_auf_foundation
+    IMPORTING
+      io_karte       TYPE REF TO zcl_26_solitaire_karte_jj
+      io_ziel_stapel TYPE REF TO zcl_26_solitaire_foundation_jj
+      io_von_stapel  TYPE REF TO zcl_26_solitaire_stapel_jj.
+
+"!Diese Methode gibt den Namen des Spielers zurück.
+  METHODS get_name
+    RETURNING VALUE(rv_name) TYPE string.
+ENDINTERFACE.

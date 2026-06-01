@@ -1,0 +1,55 @@
+CLASS zcl_26_solitaire_ablagest_jj DEFINITION
+  PUBLIC
+  INHERITING FROM zcl_26_solitaire_stapel_jj FINAL
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    INTERFACES zif_26_solitaire_ablagest_jj.
+    ALIASES karten_an_talon FOR zif_26_solitaire_ablagest_jj~karten_an_talon.
+
+    TYPES ablagekarten TYPE STANDARD TABLE OF REF TO zcl_26_solitaire_karte_jj WITH EMPTY KEY.
+
+    METHODS constructor.
+
+    METHODS ist_zug_gueltig REDEFINITION.
+
+  PROTECTED SECTION.
+
+  PRIVATE SECTION.
+
+ENDCLASS.
+
+
+CLASS zcl_26_solitaire_ablagest_jj IMPLEMENTATION.
+  METHOD constructor.
+    super->constructor( ).
+  ENDMETHOD.
+
+
+  METHOD ist_zug_gueltig.
+    "diese Methode schaut, auf welche Stapel ich nach Spielregel theoretisch legen kÃ¶nnte. Also nicht ob ein konkreter Spielzug legal ist, sondern, ob er Ã¼berhaupt "anfragbar" ist.
+        CASE TYPE OF iv_stapel.
+  WHEN TYPE zcl_26_solitaire_tableau_jj.
+    rv_ist_gueltig = abap_true.
+
+  WHEN TYPE zcl_26_solitaire_ablagest_jj.
+    rv_ist_gueltig = abap_false.
+
+  WHEN TYPE zcl_26_solitaire_foundation_jj.
+    rv_ist_gueltig = abap_true.
+
+  WHEN TYPE zcl_26_solitaire_talon_jj.
+    rv_ist_gueltig = abap_false.
+ENDCASE.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_ablagest_jj~karten_an_talon.
+    "Gibt Liste an Karten zurÃ¼ck, welche auf dem Ablagestapel liegen. LÃ¶scht anschlieÃŸend alle EintrÃ¤ge. Wird benÃ¶tigt, um den Talon wieder aufzufÃ¼llen, sollte dieser leer sein.
+    karten = remove_cards_from( 1 ).
+  ENDMETHOD.
+ENDCLASS.
+
+
+
+

@@ -1,0 +1,5 @@
+INTERFACE zif_26_solitaire_foundation_jj PUBLIC.
+ENDINTERFACE.
+
+
+

@@ -1,0 +1,86 @@
+﻿CLASS ltc_26_solitaire_tableau_jj DEFINITION
+  FINAL
+  FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PRIVATE SECTION.
+    METHODS deckt_oberste_karte_auf FOR TESTING.
+    METHODS laesst_offene_karte_offen FOR TESTING.
+    METHODS leerer_stapel_ohne_fehler FOR TESTING.
+METHODS deckt_nach_remove_auf FOR TESTING.
+ENDCLASS.
+
+
+CLASS ltc_26_solitaire_tableau_jj IMPLEMENTATION.
+  METHOD deckt_oberste_karte_auf.
+    DATA(tableau) = NEW zcl_26_solitaire_tableau_jj( ).
+
+    DATA(karte) = NEW zcl_26_solitaire_karte_jj(
+      iv_farbe    = `HERZ`
+      iv_wert     = 7
+      iv_ist_offen = abap_false ).
+
+    tableau->add_card( karte ).
+
+    tableau->decke_oberste_auf( ).
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = abap_true
+      act = karte->ist_offen( )
+      msg = 'Die oberste verdeckte Karte sollte nach dem Aufdecken offen sein.' ).
+  ENDMETHOD.
+
+
+  METHOD laesst_offene_karte_offen.
+    DATA(tableau) = NEW zcl_26_solitaire_tableau_jj( ).
+
+    DATA(karte) = NEW zcl_26_solitaire_karte_jj(
+      iv_farbe    = `PIK`
+      iv_wert     = 10
+      iv_ist_offen = abap_true ).
+
+    tableau->add_card( karte ).
+
+    tableau->decke_oberste_auf( ).
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = abap_true
+      act = karte->ist_offen( )
+      msg = 'Eine bereits offene oberste Karte sollte offen bleiben.' ).
+  ENDMETHOD.
+
+
+  METHOD leerer_stapel_ohne_fehler.
+    DATA(tableau) = NEW zcl_26_solitaire_tableau_jj( ).
+
+    tableau->decke_oberste_auf( ).
+
+    cl_abap_unit_assert=>assert_true(
+      act = abap_true
+      msg = 'Das Aufdecken eines leeren Tableau-Stapels sollte keinen Fehler werfen.' ).
+  ENDMETHOD.
+
+  METHOD deckt_nach_remove_auf.
+    DATA(tableau) = NEW zcl_26_solitaire_tableau_jj( ).
+    DATA(karte_1) = NEW zcl_26_solitaire_karte_jj(
+        iv_farbe = 'HERZ'
+          iv_ist_offen = abap_false
+          iv_wert = 7
+           ).
+    DATA(karte_2) = NEW zcl_26_solitaire_karte_jj(
+     iv_farbe = 'KARO'
+       iv_ist_offen = abap_false
+       iv_wert = 2
+        ).
+    tableau->add_card( karte_1 ).
+    tableau->add_card( karte_2 ).
+    tableau->remove_card( ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act = karte_1->ist_offen( ) ).
+  ENDMETHOD.
+ENDCLASS.
+
+
+
+
+

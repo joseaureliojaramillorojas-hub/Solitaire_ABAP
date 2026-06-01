@@ -1,0 +1,15 @@
+INTERFACE zif_26_solitaire_constants_jj
+  PUBLIC.
+
+  CONSTANTS herz          TYPE c LENGTH 4  VALUE 'HERZ'.
+  CONSTANTS pik           TYPE c LENGTH 3  VALUE 'PIK'.
+  CONSTANTS kreuz         TYPE c LENGTH 5  VALUE 'KREUZ'.
+  CONSTANTS karo          TYPE c LENGTH 4  VALUE 'KARO'.
+  CONSTANTS schwarz       TYPE c LENGTH 7  VALUE 'SCHWARZ'.
+  CONSTANTS rot           TYPE c LENGTH 3  VALUE 'ROT'.
+  CONSTANTS talon_reset   TYPE c LENGTH 11 VALUE 'TALON_RESET'.
+  CONSTANTS deck_auf      TYPE c LENGTH 8  VALUE 'DECK_AUF'.
+  CONSTANTS karte_to_ziel TYPE c LENGTH 13 VALUE 'KARTE_TO_ZIEL'.
+
+
+ENDINTERFACE.

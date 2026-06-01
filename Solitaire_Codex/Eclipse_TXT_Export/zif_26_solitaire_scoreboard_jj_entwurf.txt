@@ -1,0 +1,19 @@
+INTERFACE zif_26_solitaire_scoreboard_jj PUBLIC.
+  TYPES:
+    BEGIN OF ty_scoreboard_entry,
+      spielername TYPE string,
+      punkte      TYPE i,
+    END OF ty_scoreboard_entry.
+
+  TYPES ty_scoreboard_entries TYPE STANDARD TABLE OF ty_scoreboard_entry WITH EMPTY KEY.
+
+  METHODS add_entry
+    IMPORTING
+      iv_spielername TYPE string
+      iv_punkte      TYPE i.
+
+  METHODS get_entries
+    RETURNING VALUE(rt_entries) TYPE ty_scoreboard_entries.
+
+  METHODS clear.
+ENDINTERFACE.

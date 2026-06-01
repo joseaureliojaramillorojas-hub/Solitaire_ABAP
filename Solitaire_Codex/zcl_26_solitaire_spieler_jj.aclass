@@ -1,0 +1,54 @@
+CLASS zcl_26_solitaire_spieler_jj DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+    INTERFACES zif_26_solitaire_spieler_jj.
+    ALIASES ziehe_vom_vorrat FOR zif_26_solitaire_spieler_jj~ziehe_vom_talon.
+    ALIASES verschiebe_karte FOR zif_26_solitaire_spieler_jj~verschiebe_karte.
+    ALIASES reset_ablage FOR zif_26_solitaire_spieler_jj~reset_ablage.
+    ALIASES lege_auf_foundation FOR zif_26_solitaire_spieler_jj~lege_auf_foundation.
+    ALIASES get_name FOR zif_26_solitaire_spieler_jj~get_name.
+
+    METHODS constructor
+      IMPORTING iv_name TYPE string.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+
+    DATA name TYPE string.
+
+ENDCLASS.
+
+
+
+CLASS zcl_26_solitaire_spieler_jj IMPLEMENTATION.
+
+  METHOD constructor.
+    name = iv_name.
+  ENDMETHOD.
+
+  METHOD zif_26_solitaire_spieler_jj~ziehe_vom_talon.
+
+  ENDMETHOD.
+
+  METHOD zif_26_solitaire_spieler_jj~verschiebe_karte.
+  ENDMETHOD.
+
+  METHOD zif_26_solitaire_spieler_jj~reset_ablage.
+  ENDMETHOD.
+
+  METHOD zif_26_solitaire_spieler_jj~lege_auf_foundation.
+
+  ENDMETHOD.
+
+  METHOD get_name.
+    rv_name = name.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+
+

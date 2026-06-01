@@ -1,0 +1,66 @@
+INTERFACE zif_26_solitaire_spiel_jj PUBLIC.
+  TYPES ablagekarten TYPE STANDARD TABLE OF REF TO zcl_26_solitaire_karte_jj WITH EMPTY KEY.
+  "!mischt alle Karten
+  METHODS mischen.
+
+  "!legt die Karten auf das Spielfeld, sodass das Spiel begonnen werdne kann.
+  METHODS karten_legen.
+
+  "!Fragt ab, ob das Spiel bereits gewonnen ist, oder nicht.
+  METHODS ist_gewonnen
+    RETURNING VALUE(rv_ist_gewonnen) TYPE abap_bool.
+
+  "!Diese Methdode gibt dem Spieler die Möglichkeit das Spiel aufzugeben.
+  METHODS aufgeben.
+  "!Diese Methode gibt dem Spieler die Möglichkeit eine Karte von dem Talon auf den Ablagestapel zu ziehen.
+  METHODS ziehe_von_talon.
+
+  "!Falls der Talon leer ist, kann der Ablagestapel zum Talon recylcled werden.
+  METHODS talon_auffuellen
+  importing iv_karten type ablagekarten.
+
+"!Validiert, ob ein konkreter Zug zwischen zwei Stapeln im Tableau zulässig ist.
+  METHODS ist_tableau_zug_gueltig
+    IMPORTING iv_karten_block   TYPE REF TO zcl_26_solitaire_stapel_jj
+              iv_auf_stapel     TYPE REF TO zcl_26_solitaire_stapel_jj
+    RETURNING VALUE(rv_gueltig) TYPE abap_bool.
+
+"!Ermöglicht es Karten zwischen zwei Stapeln im Tableau zu verschieben.
+  METHODS karten_im_tableau_verschieben
+    IMPORTING karten_block TYPE REF TO zcl_26_solitaire_stapel_jj
+              auf_stapel   TYPE REF TO zcl_26_solitaire_stapel_jj
+              von_stapel   TYPE REF TO zcl_26_solitaire_stapel_jj.
+
+"!Validiert, ob eine bestimmte Karte auf einen bestimmtem Foundation-Stapel gelegt werden darf.
+  METHODS ist_foundation_zug_gueltig
+    IMPORTING karte          TYPE REF TO zcl_26_solitaire_karte_jj
+              ziel_stapel    TYPE REF TO zcl_26_solitaire_foundation_jj
+    RETURNING VALUE(gueltig) TYPE abap_bool.
+
+"!Ermöglicht es eine Karte auf einen Foundation-Stapel zu legen.
+  METHODS karte_auf_foundation
+    IMPORTING karte       TYPE REF TO zcl_26_solitaire_karte_jj
+              ziel_stapel TYPE REF TO zcl_26_solitaire_foundation_jj
+              von_stapel  TYPE REF TO zcl_26_solitaire_stapel_jj.
+
+  "!Methode, welche den Score des Spielers nach Aktionen aktualisiert.
+  METHODS update_score
+    IMPORTING aktion TYPE string.
+
+"!Hilfmethode, welche die oberste Karte der Tabelle "alle_karten" zurückgibt.
+  METHODS get_oberste_von_alle_karten
+    RETURNING VALUE(oberste_karte) TYPE REF TO zcl_26_solitaire_karte_jj.
+
+"!Hilfsmethode, welche einen gewünschten Tableaustapel zurückgibt. Index ist dabei die Nummer des Tableau ( 1-7 ).
+  METHODS get_tableau
+    IMPORTING !number        TYPE i
+    RETURNING VALUE(tableau) TYPE REF TO zcl_26_solitaire_tableau_jj.
+
+"!Hilfsmethode, welche den Talon zurückgibt.
+  METHODS get_talon
+    RETURNING VALUE(iv_talon) TYPE REF TO zcl_26_solitaire_talon_jj.
+
+"!Hilfmethode, welche den Ablagestapel zurückgibt.
+    methods get_ablage
+    returning value(ablage) type ref to zcl_26_solitaire_ablagest_jj.
+ENDINTERFACE.

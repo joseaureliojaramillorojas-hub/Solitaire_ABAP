@@ -1,0 +1,198 @@
+*"* use this source file for your ABAP unit test classes
+CLASS lcl_spiel_spy DEFINITION.
+  PUBLIC SECTION.
+    INTERFACES zif_26_solitaire_spiel.
+
+    DATA ziehe_talon_anzahl TYPE i.
+    DATA reset_anzahl       TYPE i.
+    DATA verschiebe_anzahl  TYPE i.
+    DATA foundation_anzahl  TYPE i.
+
+    DATA letzte_karten      TYPE zif_26_solitaire_spiel=>ablagekarten.
+    DATA letzter_block      TYPE REF TO zcl_26_solitaire_stapel_jj.
+    DATA letzter_auf_stapel TYPE REF TO zcl_26_solitaire_stapel_jj.
+    DATA letzter_von_stapel TYPE REF TO zcl_26_solitaire_stapel_jj.
+    DATA letzte_karte       TYPE REF TO zcl_26_solitaire_karte_jj.
+    DATA letzter_zielstapel TYPE REF TO zcl_26_solitaire_foundation_jj.
+    DATA letzter_von_ziel   TYPE REF TO zcl_26_solitaire_stapel_jj.
+ENDCLASS.
+
+
+CLASS lcl_spiel_spy IMPLEMENTATION.
+  METHOD zif_26_solitaire_spiel~mischen.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel~karten_legen.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel~ist_gewonnen.
+    rv_ist_gewonnen = abap_false.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel~aufgeben.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel~ziehe_von_talon.
+    ziehe_talon_anzahl += 1.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel~talon_auffuellen.
+    reset_anzahl += 1.
+    letzte_karten = iv_karten.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel~ist_tableau_zug_gueltig.
+    rv_gueltig = abap_true.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel~karten_im_tableau_verschieben.
+    verschiebe_anzahl += 1.
+    letzter_block = karten_block.
+    letzter_auf_stapel = auf_stapel.
+    letzter_von_stapel = von_stapel.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel~ist_foundation_zug_gueltig.
+    gueltig = abap_true.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel~karte_auf_foundation.
+    foundation_anzahl += 1.
+    letzte_karte = karte.
+    letzter_zielstapel = ziel_stapel.
+    letzter_von_ziel = von_stapel.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel~aktualisiere_score.
+  ENDMETHOD.
+ENDCLASS.
+
+
+CLASS ltc_solitaire_spieler DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    DATA spieler TYPE REF TO zcl_26_solitaire_spieler_jj.
+    DATA spiel   TYPE REF TO lcl_spiel_spy.
+
+    METHODS setup.
+    METHODS name_wird_gespeichert   FOR TESTING.
+    METHODS talon_ziehen_delegiert   FOR TESTING.
+    METHODS reset_ablage_delegiert   FOR TESTING.
+    METHODS tableau_zug_delegiert    FOR TESTING.
+    METHODS foundation_zug_delegiert FOR TESTING.
+ENDCLASS.
+
+
+CLASS ltc_solitaire_spieler IMPLEMENTATION.
+  METHOD setup.
+    spiel = NEW #( ).
+    spieler = NEW #( iv_name  = `Aurelio`
+                     io_spiel = spiel ).
+  ENDMETHOD.
+
+
+  METHOD name_wird_gespeichert.
+    cl_abap_unit_assert=>assert_equals(
+      exp = `Aurelio`
+      act = spieler->get_name( ) ).
+  ENDMETHOD.
+
+
+  METHOD talon_ziehen_delegiert.
+    spieler->ziehe_vom_vorrat( ).
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = 1
+      act = spiel->ziehe_talon_anzahl ).
+  ENDMETHOD.
+
+
+  METHOD reset_ablage_delegiert.
+    DATA karten TYPE zif_26_solitaire_spiel=>ablagekarten.
+
+    DATA(karte) = NEW zcl_26_solitaire_karte_jj(
+      iv_farbe     = `KARO`
+      iv_wert      = 8
+      iv_ist_offen = abap_true ).
+
+    APPEND karte TO karten.
+
+    spieler->reset_ablage( it_karten = karten ).
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = 1
+      act = spiel->reset_anzahl ).
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = 1
+      act = lines( spiel->letzte_karten ) ).
+
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( spiel->letzte_karten[ 1 ] = karte ) ).
+  ENDMETHOD.
+
+
+  METHOD tableau_zug_delegiert.
+    DATA(karten_block) = NEW zcl_26_solitaire_tableau_jj( ).
+    DATA(auf_stapel) = NEW zcl_26_solitaire_tableau_jj( ).
+    DATA(von_stapel) = NEW zcl_26_solitaire_tableau_jj( ).
+
+    spieler->verschiebe_karte(
+      iv_karten_block = karten_block
+      iv_auf_stapel   = auf_stapel
+      iv_von_stapel   = von_stapel ).
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = 1
+      act = spiel->verschiebe_anzahl ).
+
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( spiel->letzter_block = karten_block ) ).
+
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( spiel->letzter_auf_stapel = auf_stapel ) ).
+
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( spiel->letzter_von_stapel = von_stapel ) ).
+  ENDMETHOD.
+
+
+  METHOD foundation_zug_delegiert.
+    DATA(karte) = NEW zcl_26_solitaire_karte_jj(
+      iv_farbe     = `KARO`
+      iv_wert      = 8
+      iv_ist_offen = abap_true ).
+
+    DATA(ziel_stapel) = NEW zcl_26_solitaire_foundation_jj( ).
+    DATA(von_stapel) = NEW zcl_26_solitaire_tableau_jj( ).
+
+    spieler->lege_auf_foundation(
+      io_karte       = karte
+      io_ziel_stapel = ziel_stapel
+      io_von_stapel  = von_stapel ).
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = 1
+      act = spiel->foundation_anzahl ).
+
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( spiel->letzte_karte = karte ) ).
+
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( spiel->letzter_zielstapel = ziel_stapel ) ).
+
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( spiel->letzter_von_ziel = von_stapel ) ).
+  ENDMETHOD.
+ENDCLASS.

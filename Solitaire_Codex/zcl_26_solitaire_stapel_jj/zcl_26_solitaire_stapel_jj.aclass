@@ -1,0 +1,86 @@
+CLASS zcl_26_solitaire_stapel_jj DEFINITION
+  PUBLIC ABSTRACT.
+
+  PUBLIC SECTION.
+    INTERFACES zif_26_solitaire_stapel_jj.
+
+    ALIASES get_size FOR zif_26_solitaire_stapel_jj~get_size.
+    ALIASES get_karte FOR zif_26_solitaire_stapel_jj~get_karte.
+    ALIASES get_oberste_karte FOR zif_26_solitaire_stapel_jj~get_oberste_karte.
+    ALIASES remove_card FOR zif_26_solitaire_stapel_jj~remove_card.
+    ALIASES add_card FOR zif_26_solitaire_stapel_jj~add_card.
+    ALIASES add_cards FOR zif_26_solitaire_stapel_jj~add_cards.
+    ALIASES remove_cards_from FOR zif_26_solitaire_stapel_jj~remove_cards_from.
+    ALIASES ist_zug_gueltig FOR zif_26_solitaire_stapel_jj~ist_zug_gueltig.
+
+    TYPES ty_karten TYPE STANDARD TABLE OF REF TO zcl_26_solitaire_karte_jj WITH EMPTY KEY.
+
+    METHODS constructor.
+
+  PROTECTED SECTION.
+
+  PRIVATE SECTION.
+    DATA mt_karten TYPE ty_karten.
+
+ENDCLASS.
+
+
+CLASS zcl_26_solitaire_stapel_jj IMPLEMENTATION.
+  METHOD constructor.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_stapel_jj~get_size.
+    rv_size = lines( me->mt_karten ).
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_stapel_jj~get_karte.
+    rv_card = mt_karten[ iv_index ].
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_stapel_jj~get_oberste_karte.
+    IF get_size( ) > 0.
+      rv_card = get_karte( get_size( ) ).
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_stapel_jj~remove_card.
+    DELETE me->mt_karten INDEX me->get_size( ).
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_stapel_jj~add_card.
+    append iv_card to me->mt_karten.
+    data(last_index) = lines( mt_karten ).
+    "unnötig??(folgender Block)
+*    if mt_karten[ last_index ]->ist_offen( ) = abap_true.
+*    mt_karten[ last_index ]->drehe_um( ).
+*    endif.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_stapel_jj~add_cards.
+    APPEND LINES OF it_karten TO me->mt_karten.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_stapel_jj~remove_cards_from.
+    DATA(lv_index) = iv_index.
+
+    IF lv_index < 1.
+      RETURN.
+    ENDIF.
+
+    WHILE lv_index <= me->get_size( ).
+      APPEND mt_karten[ lv_index ] TO rt_karten.
+      DELETE me->mt_karten INDEX lv_index.
+    ENDWHILE.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_stapel_jj~ist_zug_gueltig.
+  ENDMETHOD.
+ENDCLASS.

@@ -1,0 +1,70 @@
+CLASS zcl_26_solitaire_spieler_jj DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    INTERFACES zif_26_solitaire_spieler_jj.
+    ALIASES ziehe_vom_vorrat   FOR zif_26_solitaire_spieler_jj~ziehe_vom_vorrat.
+    ALIASES verschiebe_karte   FOR zif_26_solitaire_spieler_jj~verschiebe_karte.
+    ALIASES reset_ablage       FOR zif_26_solitaire_spieler_jj~reset_ablage.
+    ALIASES lege_auf_foundation FOR zif_26_solitaire_spieler_jj~lege_auf_foundation.
+    ALIASES get_name           FOR zif_26_solitaire_spieler_jj~get_name.
+
+    METHODS constructor
+      IMPORTING
+        iv_name  TYPE string
+        io_spiel TYPE REF TO zif_26_solitaire_spiel_jj OPTIONAL.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+    DATA name TYPE string.
+    DATA spiel TYPE REF TO zif_26_solitaire_spiel_jj.
+ENDCLASS.
+
+
+CLASS zcl_26_solitaire_spieler_jj IMPLEMENTATION.
+  METHOD constructor.
+    name = iv_name.
+    spiel = io_spiel.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spieler_jj~ziehe_vom_vorrat.
+    IF spiel IS BOUND.
+      spiel->ziehe_von_talon( ).
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spieler_jj~verschiebe_karte.
+    IF spiel IS BOUND.
+      spiel->karten_im_tableau_verschieben(
+        karten_block = iv_karten_block
+        auf_stapel   = iv_auf_stapel
+        von_stapel   = iv_von_stapel ).
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spieler_jj~reset_ablage.
+    IF spiel IS BOUND.
+      spiel->talon_auffuellen( iv_karten = it_karten ).
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spieler_jj~lege_auf_foundation.
+    IF spiel IS BOUND.
+      spiel->karte_auf_foundation(
+        karte       = io_karte
+        ziel_stapel = io_ziel_stapel
+        von_stapel  = io_von_stapel ).
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spieler_jj~get_name.
+    rv_name = name.
+  ENDMETHOD.
+ENDCLASS.
