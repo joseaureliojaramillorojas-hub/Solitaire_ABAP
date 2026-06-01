@@ -1,0 +1,7 @@
+*.abap linguist-language=ABAP
+*.asprog linguist-language=ABAP
+*.aclass linguist-language=ABAP
+*.apclass linguist-language=ABAP
+*.acinc linguist-language=ABAP
+*.aint linguist-language=ABAP
+*.apint linguist-language=ABAP
