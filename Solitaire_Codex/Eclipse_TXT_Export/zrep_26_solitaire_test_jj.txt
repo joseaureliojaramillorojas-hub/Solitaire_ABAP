@@ -1,0 +1,371 @@
+REPORT zrep_26_solitaire_test_jj.
+
+CLASS lcl_stapel_dummy DEFINITION
+  INHERITING FROM zcl_26_solitaire_stapel_jj.
+ENDCLASS.
+
+
+CLASS lcl_stapel_dummy IMPLEMENTATION.
+ENDCLASS.
+
+
+CLASS lcl_spiel_spy DEFINITION.
+  PUBLIC SECTION.
+    INTERFACES zif_26_solitaire_spiel.
+
+    DATA ziehe_talon_anzahl TYPE i.
+    DATA reset_anzahl       TYPE i.
+    DATA verschiebe_anzahl  TYPE i.
+    DATA foundation_anzahl  TYPE i.
+
+    DATA letzte_karten      TYPE zif_26_solitaire_spiel=>ablagekarten.
+    DATA letzter_block      TYPE REF TO zcl_26_solitaire_stapel_jj.
+    DATA letzter_auf_stapel TYPE REF TO zcl_26_solitaire_stapel_jj.
+    DATA letzter_von_stapel TYPE REF TO zcl_26_solitaire_stapel_jj.
+    DATA letzte_karte       TYPE REF TO zcl_26_solitaire_karte_jj.
+    DATA letzter_zielstapel TYPE REF TO zcl_26_solitaire_foundation_jj.
+    DATA letzter_von_ziel   TYPE REF TO zcl_26_solitaire_stapel_jj.
+ENDCLASS.
+
+
+CLASS lcl_spiel_spy IMPLEMENTATION.
+  METHOD zif_26_solitaire_spiel~mischen.
+  ENDMETHOD.
+
+  METHOD zif_26_solitaire_spiel~karten_legen.
+  ENDMETHOD.
+
+  METHOD zif_26_solitaire_spiel~ist_gewonnen.
+    rv_ist_gewonnen = abap_false.
+  ENDMETHOD.
+
+  METHOD zif_26_solitaire_spiel~aufgeben.
+  ENDMETHOD.
+
+  METHOD zif_26_solitaire_spiel~ziehe_von_talon.
+    ziehe_talon_anzahl += 1.
+  ENDMETHOD.
+
+  METHOD zif_26_solitaire_spiel~talon_auffuellen.
+    reset_anzahl += 1.
+    letzte_karten = iv_karten.
+  ENDMETHOD.
+
+  METHOD zif_26_solitaire_spiel~ist_tableau_zug_gueltig.
+    rv_gueltig = abap_true.
+  ENDMETHOD.
+
+  METHOD zif_26_solitaire_spiel~karten_im_tableau_verschieben.
+    verschiebe_anzahl += 1.
+    letzter_block = karten_block.
+    letzter_auf_stapel = auf_stapel.
+    letzter_von_stapel = von_stapel.
+  ENDMETHOD.
+
+  METHOD zif_26_solitaire_spiel~ist_foundation_zug_gueltig.
+    gueltig = abap_true.
+  ENDMETHOD.
+
+  METHOD zif_26_solitaire_spiel~karte_auf_foundation.
+    foundation_anzahl += 1.
+    letzte_karte = karte.
+    letzter_zielstapel = ziel_stapel.
+    letzter_von_ziel = von_stapel.
+  ENDMETHOD.
+
+  METHOD zif_26_solitaire_spiel~aktualisiere_score.
+  ENDMETHOD.
+ENDCLASS.
+
+
+CLASS lcl_report DEFINITION.
+  PUBLIC SECTION.
+    CLASS-DATA tests_ok     TYPE i.
+    CLASS-DATA tests_fehler TYPE i.
+
+    CLASS-METHODS assert_true
+      IMPORTING iv_name TYPE string
+                iv_act  TYPE abap_bool.
+
+    CLASS-METHODS assert_equals_i
+      IMPORTING iv_name TYPE string
+                iv_exp  TYPE i
+                iv_act  TYPE i.
+
+    CLASS-METHODS assert_equals_s
+      IMPORTING iv_name TYPE string
+                iv_exp  TYPE string
+                iv_act  TYPE string.
+
+    CLASS-METHODS test_karte.
+    CLASS-METHODS test_stapel.
+    CLASS-METHODS test_tableau.
+    CLASS-METHODS test_spielregeln.
+    CLASS-METHODS test_spieler.
+    CLASS-METHODS schreibe_ergebnis.
+ENDCLASS.
+
+
+CLASS lcl_report IMPLEMENTATION.
+  METHOD assert_true.
+    IF iv_act = abap_true.
+      tests_ok += 1.
+      WRITE: / 'OK   ', iv_name.
+    ELSE.
+      tests_fehler += 1.
+      WRITE: / 'FEHL ', iv_name.
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD assert_equals_i.
+    IF iv_exp = iv_act.
+      tests_ok += 1.
+      WRITE: / 'OK   ', iv_name.
+    ELSE.
+      tests_fehler += 1.
+      WRITE: / 'FEHL ', iv_name, ' erwartet:', iv_exp, ' erhalten:', iv_act.
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD assert_equals_s.
+    IF iv_exp = iv_act.
+      tests_ok += 1.
+      WRITE: / 'OK   ', iv_name.
+    ELSE.
+      tests_fehler += 1.
+      WRITE: / 'FEHL ', iv_name, ' erwartet:', iv_exp, ' erhalten:', iv_act.
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD test_karte.
+    WRITE: /.
+    WRITE: / 'Karte'.
+
+    DATA(karte) = NEW zcl_26_solitaire_karte_jj(
+      iv_farbe     = 'KARO'
+      iv_wert      = 8
+      iv_ist_offen = abap_false ).
+
+    assert_equals_s( iv_name = 'Farbe ist KARO'
+                     iv_exp  = 'KARO'
+                     iv_act  = karte->get_farbe( ) ).
+
+    assert_equals_s( iv_name = 'Kartenfarbe ist ROT'
+                     iv_exp  = 'ROT'
+                     iv_act  = karte->get_kartenfarbe( ) ).
+
+    assert_equals_i( iv_name = 'Wert ist 8'
+                     iv_exp  = 8
+                     iv_act  = karte->get_wert( ) ).
+
+    karte->drehe_um( ).
+
+    assert_true( iv_name = 'Karte wird aufgedeckt'
+                 iv_act  = karte->ist_offen( ) ).
+  ENDMETHOD.
+
+
+  METHOD test_stapel.
+    WRITE: /.
+    WRITE: / 'Stapel'.
+
+    DATA(stapel) = NEW lcl_stapel_dummy( ).
+    DATA(karte_1) = NEW zcl_26_solitaire_karte_jj(
+      iv_farbe     = 'KREUZ'
+      iv_wert      = 3
+      iv_ist_offen = abap_true ).
+    DATA(karte_2) = NEW zcl_26_solitaire_karte_jj(
+      iv_farbe     = 'KARO'
+      iv_wert      = 13
+      iv_ist_offen = abap_true ).
+
+    stapel->add_card( karte_1 ).
+    stapel->add_card( karte_2 ).
+
+    assert_equals_i( iv_name = 'Stapel hat 2 Karten'
+                     iv_exp  = 2
+                     iv_act  = stapel->get_size( ) ).
+
+    assert_equals_i( iv_name = 'Oberste Karte ist 13'
+                     iv_exp  = 13
+                     iv_act  = stapel->get_oberste_karte( )->get_wert( ) ).
+
+    stapel->remove_card( ).
+
+    assert_equals_i( iv_name = 'Nach remove bleibt 1 Karte'
+                     iv_exp  = 1
+                     iv_act  = stapel->get_size( ) ).
+  ENDMETHOD.
+
+
+  METHOD test_tableau.
+    WRITE: /.
+    WRITE: / 'Tableau'.
+
+    DATA(tableau) = NEW zcl_26_solitaire_tableau_jj( ).
+    DATA(karte_1) = NEW zcl_26_solitaire_karte_jj(
+      iv_farbe     = 'HERZ'
+      iv_wert      = 7
+      iv_ist_offen = abap_false ).
+    DATA(karte_2) = NEW zcl_26_solitaire_karte_jj(
+      iv_farbe     = 'PIK'
+      iv_wert      = 6
+      iv_ist_offen = abap_true ).
+
+    tableau->add_card( karte_1 ).
+    tableau->add_card( karte_2 ).
+    tableau->remove_card( ).
+
+    assert_true( iv_name = 'Nach remove wird neue oberste Karte offen'
+                 iv_act  = karte_1->ist_offen( ) ).
+  ENDMETHOD.
+
+
+  METHOD test_spielregeln.
+    WRITE: /.
+    WRITE: / 'Spielregeln'.
+
+    DATA(spiel) = NEW zcl_26_solitaire_spiel( ).
+    DATA(karten_block) = NEW zcl_26_solitaire_tableau_jj( ).
+    DATA(auf_stapel) = NEW zcl_26_solitaire_tableau_jj( ).
+    DATA(von_stapel) = NEW zcl_26_solitaire_tableau_jj( ).
+
+    DATA(verdeckte) = NEW zcl_26_solitaire_karte_jj(
+      iv_farbe     = 'KREUZ'
+      iv_wert      = 2
+      iv_ist_offen = abap_false ).
+    DATA(karo_9) = NEW zcl_26_solitaire_karte_jj(
+      iv_farbe     = 'KARO'
+      iv_wert      = 9
+      iv_ist_offen = abap_true ).
+    DATA(kreuz_10) = NEW zcl_26_solitaire_karte_jj(
+      iv_farbe     = 'KREUZ'
+      iv_wert      = 10
+      iv_ist_offen = abap_true ).
+
+    von_stapel->add_card( verdeckte ).
+    von_stapel->add_card( karo_9 ).
+    karten_block->add_card( karo_9 ).
+    auf_stapel->add_card( kreuz_10 ).
+
+    assert_true( iv_name = 'Rote 9 darf auf schwarze 10'
+                 iv_act  = spiel->ist_tableau_zug_gueltig(
+                   iv_karten_block = karten_block
+                   iv_auf_stapel   = auf_stapel ) ).
+
+    spiel->karten_im_tableau_verschieben(
+      karten_block = karten_block
+      auf_stapel   = auf_stapel
+      von_stapel   = von_stapel ).
+
+    assert_equals_i( iv_name = 'Von-Stapel hat nach Verschieben 1 Karte'
+                     iv_exp  = 1
+                     iv_act  = von_stapel->get_size( ) ).
+
+    assert_equals_i( iv_name = 'Ziel-Stapel hat nach Verschieben 2 Karten'
+                     iv_exp  = 2
+                     iv_act  = auf_stapel->get_size( ) ).
+
+    DATA(foundation) = NEW zcl_26_solitaire_foundation_jj( ).
+    DATA(von_foundation) = NEW zcl_26_solitaire_tableau_jj( ).
+    DATA(karo_7) = NEW zcl_26_solitaire_karte_jj(
+      iv_farbe     = 'KARO'
+      iv_wert      = 7
+      iv_ist_offen = abap_true ).
+    DATA(karo_8) = NEW zcl_26_solitaire_karte_jj(
+      iv_farbe     = 'KARO'
+      iv_wert      = 8
+      iv_ist_offen = abap_true ).
+
+    foundation->add_card( karo_7 ).
+    von_foundation->add_card( karo_8 ).
+
+    spiel->karte_auf_foundation(
+      karte       = karo_8
+      ziel_stapel = foundation
+      von_stapel  = von_foundation ).
+
+    assert_equals_i( iv_name = 'Foundation hat oben die 8'
+                     iv_exp  = 8
+                     iv_act  = foundation->get_oberste_karte( )->get_wert( ) ).
+
+    assert_equals_i( iv_name = 'Quellstapel ist danach leer'
+                     iv_exp  = 0
+                     iv_act  = von_foundation->get_size( ) ).
+  ENDMETHOD.
+
+
+  METHOD test_spieler.
+    WRITE: /.
+    WRITE: / 'Spieler'.
+
+    DATA(spiel_spy) = NEW lcl_spiel_spy( ).
+    DATA(spieler) = NEW zcl_26_solitaire_spieler_jj(
+      iv_name  = 'Aurelio'
+      io_spiel = spiel_spy ).
+
+    assert_equals_s( iv_name = 'Spielername wird gespeichert'
+                     iv_exp  = 'Aurelio'
+                     iv_act  = spieler->get_name( ) ).
+
+    spieler->ziehe_vom_vorrat( ).
+
+    assert_equals_i( iv_name = 'Spieler delegiert Talon ziehen'
+                     iv_exp  = 1
+                     iv_act  = spiel_spy->ziehe_talon_anzahl ).
+
+    DATA(karten_block) = NEW zcl_26_solitaire_tableau_jj( ).
+    DATA(auf_stapel) = NEW zcl_26_solitaire_tableau_jj( ).
+    DATA(von_stapel) = NEW zcl_26_solitaire_tableau_jj( ).
+
+    spieler->verschiebe_karte(
+      iv_karten_block = karten_block
+      iv_auf_stapel   = auf_stapel
+      iv_von_stapel   = von_stapel ).
+
+    assert_equals_i( iv_name = 'Spieler delegiert Tableau-Zug'
+                     iv_exp  = 1
+                     iv_act  = spiel_spy->verschiebe_anzahl ).
+
+    DATA(karten) = VALUE zif_26_solitaire_spiel=>ablagekarten(
+      ( NEW zcl_26_solitaire_karte_jj(
+          iv_farbe     = 'HERZ'
+          iv_wert      = 1
+          iv_ist_offen = abap_true ) ) ).
+
+    spieler->reset_ablage( it_karten = karten ).
+
+    assert_equals_i( iv_name = 'Spieler delegiert Ablage-Reset'
+                     iv_exp  = 1
+                     iv_act  = spiel_spy->reset_anzahl ).
+  ENDMETHOD.
+
+
+  METHOD schreibe_ergebnis.
+    WRITE: /.
+    WRITE: / 'Ergebnis'.
+    WRITE: / 'OK:', tests_ok.
+    WRITE: / 'Fehler:', tests_fehler.
+
+    IF tests_fehler = 0.
+      WRITE: / 'Alle Report-Checks sind erfolgreich.'.
+    ELSE.
+      WRITE: / 'Mindestens ein Check ist fehlgeschlagen.'.
+    ENDIF.
+  ENDMETHOD.
+ENDCLASS.
+
+
+START-OF-SELECTION.
+  WRITE: / 'Solitaire Klassencheck'.
+  WRITE: / '======================'.
+
+  lcl_report=>test_karte( ).
+  lcl_report=>test_stapel( ).
+  lcl_report=>test_tableau( ).
+  lcl_report=>test_spielregeln( ).
+  lcl_report=>test_spieler( ).
+  lcl_report=>schreibe_ergebnis( ).

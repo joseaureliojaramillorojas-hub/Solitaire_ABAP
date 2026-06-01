@@ -1,0 +1,23 @@
+INTERFACE zif_26_solitaire_karte_jj PUBLIC.
+
+"!Diese Methode ermögloicht es eine Karte umzudrehen.
+  METHODS drehe_um.
+
+"!Diese Methode gibt die Farbe der Karte zurück (KARO, PIK, KREUZ, HERZ).
+  METHODS get_farbe
+    RETURNING VALUE(rv_farbe) TYPE string.
+
+"!Diese Methode gibt den Wert der Karte zurück ( 2 - 13 ).
+  METHODS get_wert
+    RETURNING VALUE(rv_wert) TYPE i.
+
+"!Diese Methode gibt die Farbe der Karte zurück ( rot oder schwarz ).
+  METHODS get_kartenfarbe
+    RETURNING VALUE(rv_color) TYPE string.
+
+"!Hilfsmethode, welche zurückgibt, ob eine Karte offen, oder verdeckt liegt.
+  METHODS ist_offen
+    RETURNING VALUE(rv_ist_offen) TYPE abap_bool.
+ENDINTERFACE.
+
+

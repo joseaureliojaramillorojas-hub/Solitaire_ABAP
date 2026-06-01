@@ -1,0 +1,9 @@
+INTERFACE zif_26_solitaire_ablagest_jj PUBLIC.
+  TYPES ablagekarten TYPE STANDARD TABLE OF REF TO zcl_26_solitaire_karte_jj WITH EMPTY KEY.
+
+"!Diese Methode sorgt dafür, dass die Karten, welche auf dem Ablagestapel liegen wieder in den Talon verschoben werden.
+  METHODS karten_an_talon
+    RETURNING VALUE(karten) TYPE ablagekarten.
+ENDINTERFACE.
+
+

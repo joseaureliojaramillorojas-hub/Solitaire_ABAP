@@ -1,0 +1,105 @@
+CLASS ltcl_tableau DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    DATA tableau    TYPE REF TO zcl_26_solitaire_tableau_jj.
+    DATA foundation TYPE REF TO zcl_26_solitaire_foundation_jj.
+    DATA talon      TYPE REF TO zcl_26_solitaire_talon_jj.
+    DATA ablage     TYPE REF TO zcl_26_solitaire_ablagest_jj.
+
+    METHODS deckt_oberste_karte_auf    FOR TESTING.
+    METHODS laesst_oberste_karte_offen FOR TESTING.
+    METHODS leerer_stapel_kein_fehler  FOR TESTING.
+    METHODS deckt_nach_remove_auf      FOR TESTING.
+
+    METHODS zug_auf_tableau            FOR TESTING RAISING cx_static_check.
+    METHODS zug_auf_talon              FOR TESTING RAISING cx_static_check.
+    METHODS zug_auf_foundation         FOR TESTING RAISING cx_static_check.
+    METHODS zug_auf_ablagestapel       FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+
+CLASS ltcl_tableau IMPLEMENTATION.
+  METHOD deckt_oberste_karte_auf.
+    DATA(tableau) = NEW zcl_26_solitaire_tableau_jj( ).
+    DATA(karte) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'HERZ'
+                                                 iv_ist_offen = abap_false
+                                                 iv_wert      = 7 ).
+    tableau->add_card( karte ).
+    tableau->decke_oberste_auf( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = karte->ist_offen( ) ).
+  ENDMETHOD.
+
+
+  METHOD laesst_oberste_karte_offen.
+    DATA(tableau) = NEW zcl_26_solitaire_tableau_jj( ).
+    DATA(karte) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'HERZ'
+                                                 iv_ist_offen = abap_true
+                                                 iv_wert      = 7 ).
+    tableau->add_card( karte ).
+    tableau->decke_oberste_auf( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = karte->ist_offen( ) ).
+  ENDMETHOD.
+
+
+  METHOD deckt_nach_remove_auf.
+    DATA(tableau) = NEW zcl_26_solitaire_tableau_jj( ).
+    DATA(karte_1) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'HERZ'
+                                                   iv_ist_offen = abap_false
+                                                   iv_wert      = 7 ).
+    DATA(karte_2) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KARO'
+                                                   iv_ist_offen = abap_false
+                                                   iv_wert      = 2 ).
+    tableau->add_card( karte_1 ).
+    tableau->add_card( karte_2 ).
+    tableau->remove_card( ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = karte_1->ist_offen( ) ).
+  ENDMETHOD.
+
+
+  METHOD leerer_stapel_kein_fehler.
+    DATA(tableau) = NEW zcl_26_solitaire_tableau_jj( ).
+    DATA(temp) = tableau->get_oberste_karte( ).
+    cl_abap_unit_assert=>assert_initial( act = temp ).
+  ENDMETHOD.
+
+
+  METHOD zug_auf_tableau.
+    tableau = NEW zcl_26_solitaire_tableau_jj( ).
+    tableau = NEW zcl_26_solitaire_tableau_jj( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = tableau->ist_zug_gueltig( tableau ) ).
+  ENDMETHOD.
+
+
+  METHOD zug_auf_talon.
+    tableau = NEW zcl_26_solitaire_tableau_jj( ).
+    talon = NEW zcl_26_solitaire_talon_jj( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = tableau->ist_zug_gueltig( talon ) ).
+  ENDMETHOD.
+
+
+  METHOD zug_auf_foundation.
+    tableau = NEW zcl_26_solitaire_tableau_jj( ).
+    foundation = NEW zcl_26_solitaire_foundation_jj( ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = tableau->ist_zug_gueltig( foundation ) ).
+  ENDMETHOD.
+
+
+  METHOD zug_auf_ablagestapel.
+    tableau = NEW zcl_26_solitaire_tableau_jj( ).
+    ablage = NEW zcl_26_solitaire_ablagest_jj( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = tableau->ist_zug_gueltig( ablage ) ).
+  ENDMETHOD.
+ENDCLASS.

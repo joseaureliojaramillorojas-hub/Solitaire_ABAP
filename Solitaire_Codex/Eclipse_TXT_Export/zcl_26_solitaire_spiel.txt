@@ -1,0 +1,346 @@
+CLASS zcl_26_solitaire_spiel DEFINITION
+  PUBLIC FINAL
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    INTERFACES zif_26_solitaire_spiel_jj.
+
+    ALIASES mischen                       FOR zif_26_solitaire_spiel_jj~mischen.
+    ALIASES karten_legen                  FOR zif_26_solitaire_spiel_jj~karten_legen.
+    ALIASES ist_gewonnen                  FOR zif_26_solitaire_spiel_jj~ist_gewonnen.
+    ALIASES aufgeben                      FOR zif_26_solitaire_spiel_jj~aufgeben.
+    ALIASES ziehe_von_talon               FOR zif_26_solitaire_spiel_jj~ziehe_von_talon.
+    ALIASES talon_auffuellen              FOR zif_26_solitaire_spiel_jj~talon_auffuellen.
+    ALIASES ist_tableau_zug_gueltig       FOR zif_26_solitaire_spiel_jj~ist_tableau_zug_gueltig.
+    ALIASES karten_im_tableau_verschieben FOR zif_26_solitaire_spiel_jj~karten_im_tableau_verschieben.
+    ALIASES ist_foundation_zug_gueltig    FOR zif_26_solitaire_spiel_jj~ist_foundation_zug_gueltig.
+    ALIASES karte_auf_foundation          FOR zif_26_solitaire_spiel_jj~karte_auf_foundation.
+    ALIASES update_score                  FOR zif_26_solitaire_spiel_jj~update_score.
+    ALIASES get_oberste_von_allen_karten  FOR zif_26_solitaire_spiel_jj~get_oberste_von_alle_karten.
+    ALIASES get_tableau                   FOR zif_26_solitaire_spiel_jj~get_tableau.
+    ALIASES get_talon                     FOR zif_26_solitaire_spiel_jj~get_talon.
+    ALIASES get_ablage                    FOR zif_26_solitaire_spiel_jj~get_ablage.
+
+    DATA score TYPE i.
+
+    TYPES ablagekarten TYPE STANDARD TABLE OF REF TO zcl_26_solitaire_karte_jj WITH EMPTY KEY.
+
+    METHODS constructor
+      IMPORTING it_karten TYPE ablagekarten OPTIONAL.
+
+  PRIVATE SECTION.
+    DATA alle_karten      TYPE STANDARD TABLE OF REF TO zcl_26_solitaire_karte_jj.
+    DATA lt_farben        TYPE TABLE OF string.
+    DATA herz             TYPE string.
+    DATA karo             TYPE string.
+    DATA pik              TYPE string.
+    DATA kreuz            TYPE string.
+    DATA lv_farbe         TYPE string.
+    DATA lv_wert          TYPE i.
+    DATA tableau_1        TYPE REF TO zcl_26_solitaire_tableau_jj.
+    DATA tableau_2        TYPE REF TO zcl_26_solitaire_tableau_jj.
+    DATA tableau_3        TYPE REF TO zcl_26_solitaire_tableau_jj.
+    DATA tableau_4        TYPE REF TO zcl_26_solitaire_tableau_jj.
+    DATA tableau_5        TYPE REF TO zcl_26_solitaire_tableau_jj.
+    DATA tableau_6        TYPE REF TO zcl_26_solitaire_tableau_jj.
+    DATA tableau_7        TYPE REF TO zcl_26_solitaire_tableau_jj.
+
+    DATA foundation_pik   TYPE REF TO zcl_26_solitaire_foundation_jj.
+    DATA foundation_karo  TYPE REF TO zcl_26_solitaire_foundation_jj.
+    DATA foundation_kreuz TYPE REF TO zcl_26_solitaire_foundation_jj.
+    DATA foundation_herz  TYPE REF TO zcl_26_solitaire_foundation_jj.
+
+    DATA talon            TYPE REF TO zcl_26_solitaire_talon_jj.
+    DATA ablage_stapel    TYPE REF TO zcl_26_solitaire_ablagest_jj.
+ENDCLASS.
+
+
+CLASS zcl_26_solitaire_spiel IMPLEMENTATION.
+  METHOD constructor.
+    herz = zif_26_solitaire_constants_jj=>herz.
+    pik = zif_26_solitaire_constants_jj=>pik.
+    karo = zif_26_solitaire_constants_jj=>karo.
+    kreuz = zif_26_solitaire_constants_jj=>kreuz.
+    lt_farben = VALUE #( ( herz ) ( karo ) ( pik ) ( kreuz ) ).
+
+    " folgend werden alle Stapel erstellt.
+    tableau_1 = NEW #( ).
+    tableau_2 = NEW #( ).
+    tableau_3 = NEW #( ).
+    tableau_4 = NEW #( ).
+    tableau_5 = NEW #( ).
+    tableau_6 = NEW #( ).
+    tableau_7 = NEW #( ).
+
+    foundation_pik = NEW #( ).
+    foundation_karo = NEW #( ).
+    foundation_kreuz = NEW #( ).
+    foundation_herz = NEW #( ).
+
+    talon = NEW #( ).
+    ablage_stapel = NEW #( ).
+
+    IF it_karten IS SUPPLIED.
+      alle_karten = it_karten.
+    ELSE.
+      "nun folgen alle Karten die im Spiel verfÃ¼gbar sind.
+      LOOP AT lt_farben INTO lv_farbe.
+        DO 13 TIMES.
+          lv_wert = sy-index.
+          APPEND NEW zcl_26_solitaire_karte_jj( iv_farbe     = lv_farbe
+                                                iv_wert      = lv_wert
+                                                iv_ist_offen = abap_false )
+                 TO alle_karten.
+        ENDDO.
+      ENDLOOP.
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel_jj~mischen.
+    "Zufallszahlengenerator:
+
+    "hilfstabelle:
+    TYPES: BEGIN OF ty_mischen,
+             zufalls_zahlen TYPE i,
+             karten_ref     TYPE REF TO zcl_26_solitaire_karte_jj,
+           END OF ty_mischen.
+
+    DATA misch_tabelle TYPE TABLE OF ty_mischen.
+
+    DATA(random) = cl_abap_random_int=>create( seed = cl_abap_random=>seed( ) ).
+
+    " alle Karten in die Hilfstabelle und eine Zufallszahl geben.
+    LOOP AT alle_karten INTO DATA(temp_karte).
+      APPEND VALUE #( zufalls_zahlen = random->get_next( )
+                      karten_ref     = temp_karte )
+             TO misch_tabelle.
+    ENDLOOP.
+
+    SORT misch_tabelle BY zufalls_zahlen.
+    CLEAR alle_karten.
+    LOOP AT misch_tabelle INTO DATA(misch_zeile).
+      APPEND misch_zeile-karten_ref TO alle_karten.
+    ENDLOOP.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel_jj~karten_legen.
+    "diese Methode verschiebt alle Karten in die Stapel. AnschlieÃŸend soll das Spiel gestartet werden kÃ¶nnen.
+    "zuerst die Karten ins Tableau. 28 StÃ¼ck.
+
+    DATA lokale_tableaus TYPE TABLE OF REF TO zcl_26_solitaire_tableau_jj.
+    DATA temp_karte      TYPE REF TO zcl_26_solitaire_karte_jj.
+
+    APPEND tableau_1 TO lokale_tableaus.
+    APPEND tableau_2 TO lokale_tableaus.
+    APPEND tableau_3 TO lokale_tableaus.
+    APPEND tableau_4 TO lokale_tableaus.
+    APPEND tableau_5 TO lokale_tableaus.
+    APPEND tableau_6 TO lokale_tableaus.
+    APPEND tableau_7 TO lokale_tableaus.
+
+    LOOP AT lokale_tableaus INTO DATA(temp_tableau).
+      "Stapel 1 bekommt 1 Karte, Stapel 2 bekommt 2 Karten .....
+      DATA(anzahl) = sy-tabix.
+      DO anzahl TIMES.
+        IF alle_karten IS NOT INITIAL.
+          temp_karte = alle_karten[ 1 ].
+          temp_tableau->add_card( temp_karte ).
+          DELETE alle_karten INDEX 1.
+        ENDIF.
+      ENDDO.
+      "oberste Karte aufdecken:
+      temp_tableau->decke_oberste_auf( ).
+    ENDLOOP.
+
+    "die restlichen Karten(24) kommen in den Talon:
+    LOOP AT alle_karten INTO temp_karte.
+      talon->add_card( temp_karte ).
+    ENDLOOP.
+
+    CLEAR alle_karten.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel_jj~aufgeben.
+    "keine Ahnung wie das umzusetzen ist.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel_jj~ist_gewonnen.
+    DATA won    TYPE i.
+    DATA temp_1 TYPE i.
+    DATA temp_2 TYPE i.
+    DATA temp_3 TYPE i.
+    DATA temp_4 TYPE i.
+
+    won = 13.
+    temp_1 = tableau_1->get_size( ).
+    temp_2 = tableau_2->get_size( ).
+    temp_3 = tableau_3->get_size( ).
+    temp_4 = tableau_4->get_size( ).
+    IF won = temp_1 AND temp_1 = temp_2 AND temp_1 = temp_3 AND temp_1 = temp_4.
+      rv_ist_gewonnen = abap_true.
+    ELSE.
+      rv_ist_gewonnen = abap_false.
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel_jj~talon_auffuellen.
+    IF lines( iv_karten ) > 0.
+      LOOP AT iv_karten INTO DATA(karte).
+        talon->add_card( karte ).
+      ENDLOOP.
+
+      update_score( conv string( zif_26_solitaire_constants_jj=>talon_reset ) ).
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel_jj~ziehe_von_talon.
+    DATA karte TYPE REF TO zcl_26_solitaire_karte_jj.
+
+    IF talon->get_size( ) > 0.
+      karte = talon->get_oberste_karte( ).
+      talon->remove_card( ).
+      ablage_stapel->add_card( karte ).
+    ELSE.
+      talon_auffuellen( ablage_stapel->karten_an_talon( ) ).
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel_jj~ist_tableau_zug_gueltig.
+    DATA von_karte         TYPE REF TO zcl_26_solitaire_karte_jj.
+    DATA auf_stapel_laenge TYPE i.
+    DATA von_wert          TYPE i.
+    DATA auf_karte         TYPE REF TO zcl_26_solitaire_karte_jj.
+    DATA von_farbe         TYPE string.
+    DATA zu_farbe          TYPE string.
+    DATA zu_wert           TYPE i.
+
+    "unterste Karte des Block des man bewegen will.
+    von_karte = iv_karten_block->get_karte( 1 ).
+
+    auf_stapel_laenge = iv_auf_stapel->get_size( ).
+
+    IF auf_stapel_laenge = 0.
+      von_wert = von_karte->get_wert( ).
+      IF von_wert = 13.
+        rv_gueltig = abap_true.
+      ELSE.
+        rv_gueltig = abap_false.
+      ENDIF.
+      RETURN.
+    ENDIF.
+
+    auf_karte = iv_auf_stapel->get_karte( auf_stapel_laenge ).
+
+    von_farbe = von_karte->get_kartenfarbe( ).
+    zu_farbe = auf_karte->get_kartenfarbe( ).
+    von_wert = von_karte->get_wert( ).
+    zu_wert = auf_karte->get_wert( ).
+    IF von_farbe <> zu_farbe.
+      IF von_wert = zu_wert - 1.
+        rv_gueltig = abap_true.
+      ELSE.
+        rv_gueltig = abap_false.
+      ENDIF.
+    ELSE.
+      rv_gueltig = abap_false.
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel_jj~karten_im_tableau_verschieben.
+    IF ist_tableau_zug_gueltig( iv_karten_block = karten_block
+                                iv_auf_stapel   = auf_stapel ).
+      DATA(anzahl) = karten_block->get_size( ).
+      DATA(total) = von_stapel->get_size( ).
+      DATA(verschobene_karten) = karten_block->remove_cards_from( 1 ).
+      auf_stapel->add_cards( verschobene_karten ).
+      " TODO: variable is assigned but never used (ABAP cleaner)
+      DATA(entfernte_karten) = von_stapel->remove_cards_from( total - anzahl + 1 ).
+      DATA(karte) = von_stapel->get_oberste_karte( ).
+      karte->drehe_um( ).
+      update_score( aktion = conv string( zif_26_solitaire_constants_jj=>deck_auf ) ).
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel_jj~ist_foundation_zug_gueltig.
+    DATA(start_farbe) = karte->get_farbe( ).
+    DATA(start_wert) = karte->get_wert( ).
+    DATA(ziel_karte) = ziel_stapel->get_oberste_karte( ).
+    DATA(ziel_farbe) = ziel_karte->get_farbe( ).
+    DATA(ziel_wert) = ziel_karte->get_wert( ).
+    IF start_farbe = ziel_farbe.
+      IF start_wert = ziel_wert + 1.
+        gueltig = abap_true.
+      ELSE.
+        gueltig = abap_false.
+      ENDIF.
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel_jj~karte_auf_foundation.
+    IF karte->ist_offen( ).
+      IF ist_foundation_zug_gueltig( karte       = karte
+                                     ziel_stapel = ziel_stapel ).
+        ziel_stapel->add_card( iv_card = karte ).
+        update_score( conv string( zif_26_solitaire_constants_jj=>karte_to_ziel ) ).
+        von_stapel->remove_card( ).
+      ENDIF.
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel_jj~update_score.
+    CASE aktion.
+      WHEN conv string( zif_26_solitaire_constants_jj=>karte_to_ziel ).
+        score += 10.
+      WHEN conv string( zif_26_solitaire_constants_jj=>deck_auf ).
+        score += 5.
+      WHEN conv string( zif_26_solitaire_constants_jj=>talon_reset ).
+        score -= 20.
+    ENDCASE.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_spiel_jj~get_oberste_von_alle_karten.
+    oberste_karte = alle_karten[ lines( alle_karten ) ].
+  ENDMETHOD.
+
+
+  METHOD get_tableau.
+    CASE number.
+      WHEN 1.
+        tableau = tableau_1.
+      WHEN 2.
+        tableau = tableau_2.
+      WHEN 3.
+        tableau = tableau_3.
+      WHEN 4.
+        tableau = tableau_4.
+      WHEN 5.
+        tableau = tableau_5.
+      WHEN 6.
+        tableau = tableau_6.
+      WHEN 7.
+        tableau = tableau_7.
+    ENDCASE.
+  ENDMETHOD.
+
+
+  METHOD get_talon.
+    iv_talon = talon.
+  ENDMETHOD.
+
+
+  METHOD get_ablage.
+    ablage = ablage_stapel.
+  ENDMETHOD.
+ENDCLASS.

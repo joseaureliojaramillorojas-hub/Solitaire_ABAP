@@ -1,0 +1,38 @@
+INTERFACE zif_26_solitaire_stapel_jj PUBLIC.
+  TYPES ty_karten TYPE STANDARD TABLE OF REF TO zcl_26_solitaire_karte_jj WITH EMPTY KEY.
+
+"!Diese Methode gibt die größe des Stapels zurück.
+  METHODS get_size
+    RETURNING VALUE(rv_size) TYPE i.
+
+"!Diese Methode ermöglicht es eine Karte aus dem Stapel zurückzugeben. Der Index gibt die Position der Karte an, welche zurückgegeben werden soll.
+  METHODS get_karte
+    IMPORTING iv_index       TYPE i
+    RETURNING VALUE(rv_card) TYPE REF TO zcl_26_solitaire_karte_jj.
+
+"!Diese Methode gibt die oberste Karte des Stapels zurück.
+  METHODS get_oberste_karte
+    RETURNING VALUE(rv_card) TYPE REF TO zcl_26_solitaire_karte_jj.
+
+"!Diese Methode entfernt die oberste Karte des Stapels.
+  METHODS remove_card.
+
+"!Diese Methode ermöglicht es eine Karte einem Stapel hinzuzufügen.
+  METHODS add_card
+    IMPORTING iv_card TYPE REF TO zcl_26_solitaire_karte_jj.
+
+"!Diese Methode ermöglicht es eine Menge an Karten einem Stapel hinzuzufügen.
+  METHODS add_cards
+    IMPORTING it_karten TYPE ty_karten.
+
+"!Diese Methode entfernt eine Menge an Karten vom Stapel. Der Index ist die Menge der Karten.
+  METHODS remove_cards_from
+    IMPORTING iv_index         TYPE i
+    RETURNING VALUE(rt_karten) TYPE ty_karten.
+
+"!Hilfsmethode, welche validiert, ob ein Zug vom Ausgangsstapel auf den Zielstapel generell möglich ist (nicht konkret).
+  METHODS ist_zug_gueltig
+    IMPORTING iv_stapel            TYPE REF TO zcl_26_solitaire_stapel_jj
+    RETURNING VALUE(rv_ist_gueltig) TYPE abap_bool.
+ENDINTERFACE.
+

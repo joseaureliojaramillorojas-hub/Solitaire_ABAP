@@ -1,0 +1,50 @@
+CLASS zcl_26_solitaire_talon_jj DEFINITION
+  PUBLIC
+  INHERITING FROM zcl_26_solitaire_stapel_jj FINAL
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    INTERFACES zif_26_solitaire_talon_jj.
+
+    METHODS constructor.
+
+    METHODS ist_zug_gueltig REDEFINITION.
+
+
+
+  PROTECTED SECTION.
+
+  PRIVATE SECTION.
+
+ENDCLASS.
+
+
+CLASS zcl_26_solitaire_talon_jj IMPLEMENTATION.
+  METHOD constructor.
+    super->constructor( ).
+  ENDMETHOD.
+
+
+  METHOD ist_zug_gueltig.
+    "diese Methode schaut, auf welche Stapel ich nach Spielregel theoretisch legen kÃ¶nnte. Also nicht ob ein konkreter Spielzug legal ist, sondern, ob er Ã¼berhaupt "anfragbar" ist.
+        CASE TYPE OF iv_stapel.
+  WHEN TYPE zcl_26_solitaire_tableau_jj.
+    rv_ist_gueltig = abap_false.
+
+  WHEN TYPE zcl_26_solitaire_ablagest_jj.
+    rv_ist_gueltig = abap_true.
+
+  WHEN TYPE zcl_26_solitaire_foundation_jj.
+    rv_ist_gueltig = abap_false.
+
+  WHEN TYPE zcl_26_solitaire_talon_jj.
+    rv_ist_gueltig = abap_false.
+ENDCASE.
+  ENDMETHOD.
+
+
+ENDCLASS.
+
+
+
+

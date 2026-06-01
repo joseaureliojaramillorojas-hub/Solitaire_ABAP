@@ -1,0 +1,79 @@
+CLASS zcl_26_solitaire_karte_jj DEFINITION
+  PUBLIC FINAL
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    INTERFACES zif_26_solitaire_karte_jj.
+
+    ALIASES drehe_um        FOR zif_26_solitaire_karte_jj~drehe_um.
+    ALIASES get_farbe       FOR zif_26_solitaire_karte_jj~get_farbe.
+    ALIASES get_wert        FOR zif_26_solitaire_karte_jj~get_wert.
+    ALIASES get_kartenfarbe FOR zif_26_solitaire_karte_jj~get_kartenfarbe.
+    ALIASES ist_offen       FOR zif_26_solitaire_karte_jj~ist_offen.
+
+    METHODS constructor
+      IMPORTING iv_farbe     TYPE string
+                iv_wert      TYPE i
+                iv_ist_offen TYPE abap_bool.
+
+  PRIVATE SECTION.
+    DATA farbe                TYPE string.
+    DATA wert                 TYPE i.
+    DATA ist_offen_aufgedeckt TYPE abap_bool.
+    DATA color                TYPE string.
+
+ENDCLASS.
+
+
+CLASS zcl_26_solitaire_karte_jj IMPLEMENTATION.
+  METHOD constructor.
+    farbe = iv_farbe.
+    wert = iv_wert.
+    ist_offen_aufgedeckt = iv_ist_offen.
+
+    CASE iv_farbe.
+      WHEN zif_26_solitaire_constants_jj=>pik.
+        color = zif_26_solitaire_constants_jj=>schwarz.
+      WHEN zif_26_solitaire_constants_jj=>karo.
+        color = zif_26_solitaire_constants_jj=>rot.
+      WHEN zif_26_solitaire_constants_jj=>kreuz.
+        color = zif_26_solitaire_constants_jj=>schwarz.
+      WHEN zif_26_solitaire_constants_jj=>herz.
+        color = zif_26_solitaire_constants_jj=>rot.
+    ENDCASE.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_karte_jj~drehe_um.
+    " dreht die Karte um. Kann entweder offen oder verdeckt sein.
+    CASE ist_offen_aufgedeckt.
+      WHEN abap_true.
+        ist_offen_aufgedeckt = abap_false.
+      WHEN abap_false.
+        ist_offen_aufgedeckt = abap_true.
+    ENDCASE.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_karte_jj~get_farbe.
+    " gibt die aktuelle Farbe der Karte zurueck
+    rv_farbe = farbe.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_karte_jj~get_wert.
+    " gibt den aktuellen Wert der Karte zurueck.
+    rv_wert = wert.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_karte_jj~get_kartenfarbe.
+    rv_color = color.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_karte_jj~ist_offen.
+    " gibt zurueck, ob die Karte offen oder verdeckt ist.
+    rv_ist_offen = ist_offen_aufgedeckt.
+  ENDMETHOD.
+ENDCLASS.

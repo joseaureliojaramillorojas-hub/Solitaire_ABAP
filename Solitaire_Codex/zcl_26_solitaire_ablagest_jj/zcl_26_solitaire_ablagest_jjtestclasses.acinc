@@ -1,0 +1,80 @@
+*"* use this source file for your ABAP unit test classes
+*"* use this source file for your ABAP unit test classes
+CLASS ltcl_ablagest DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    DATA tableau    TYPE REF TO zcl_26_solitaire_tableau_jj.
+    DATA foundation TYPE REF TO zcl_26_solitaire_foundation_jj.
+    DATA talon      TYPE REF TO zcl_26_solitaire_talon_jj.
+    DATA ablage     TYPE REF TO zcl_26_solitaire_ablagest_jj.
+
+    METHODS zug_auf_tableau      FOR TESTING RAISING cx_static_check.
+    METHODS zug_auf_talon        FOR TESTING RAISING cx_static_check.
+    METHODS zug_auf_foundation   FOR TESTING RAISING cx_static_check.
+    METHODS zug_auf_ablagestapel FOR TESTING RAISING cx_static_check.
+    METHODS karten_auf_talon     FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+
+CLASS ltcl_ablagest IMPLEMENTATION.
+  METHOD zug_auf_tableau.
+    ablage = NEW zcl_26_solitaire_ablagest_jj( ).
+    tableau = NEW zcl_26_solitaire_tableau_jj( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = ablage->ist_zug_gueltig( tableau ) ).
+  ENDMETHOD.
+
+
+  METHOD zug_auf_talon.
+    ablage = NEW zcl_26_solitaire_ablagest_jj( ).
+    talon = NEW zcl_26_solitaire_talon_jj( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = ablage->ist_zug_gueltig( talon ) ).
+  ENDMETHOD.
+
+
+  METHOD zug_auf_foundation.
+    ablage = NEW zcl_26_solitaire_ablagest_jj( ).
+    foundation = NEW zcl_26_solitaire_foundation_jj( ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = ablage->ist_zug_gueltig( foundation ) ).
+  ENDMETHOD.
+
+
+  METHOD zug_auf_ablagestapel.
+    ablage = NEW zcl_26_solitaire_ablagest_jj( ).
+    ablage = NEW zcl_26_solitaire_ablagest_jj( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = ablage->ist_zug_gueltig( ablage ) ).
+  ENDMETHOD.
+
+
+  METHOD karten_auf_talon.
+    "given
+
+    DATA lt_karten TYPE zcl_26_solitaire_ablagest_jj=>ty_karten.
+
+    ablage = NEW zcl_26_solitaire_ablagest_jj( ).
+
+    DATA(karte1) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KREUZ'
+                                                  iv_wert      = 3
+                                                  iv_ist_offen = abap_false ).
+    DATA(karte2) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KARO'
+                                                  iv_wert      = 13
+                                                  iv_ist_offen = abap_false ).
+    APPEND karte1 TO lt_karten.
+    APPEND karte2 TO lt_karten.
+
+    "when
+    ablage->add_cards( lt_karten ).
+    ablage->karten_an_talon( ).
+
+    "then
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = ablage->get_size( ) ).
+  ENDMETHOD.
+ENDCLASS.

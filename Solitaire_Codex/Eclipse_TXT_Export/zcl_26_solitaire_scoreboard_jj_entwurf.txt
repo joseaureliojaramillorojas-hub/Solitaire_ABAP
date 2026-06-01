@@ -1,0 +1,37 @@
+CLASS zcl_26_solitaire_scoreboard_jj DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    INTERFACES zif_26_solitaire_scoreboard_jj.
+
+    ALIASES add_entry   FOR zif_26_solitaire_scoreboard_jj~add_entry.
+    ALIASES get_entries FOR zif_26_solitaire_scoreboard_jj~get_entries.
+    ALIASES clear       FOR zif_26_solitaire_scoreboard_jj~clear.
+
+  PRIVATE SECTION.
+    DATA mt_entries TYPE zif_26_solitaire_scoreboard_jj=>ty_scoreboard_entries.
+ENDCLASS.
+
+
+CLASS zcl_26_solitaire_scoreboard_jj IMPLEMENTATION.
+  METHOD zif_26_solitaire_scoreboard_jj~add_entry.
+    APPEND VALUE #(
+      spielername = iv_spielername
+      punkte      = iv_punkte
+    ) TO mt_entries.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_scoreboard_jj~get_entries.
+    rt_entries = mt_entries.
+
+    SORT rt_entries BY punkte DESCENDING.
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_scoreboard_jj~clear.
+    CLEAR mt_entries.
+  ENDMETHOD.
+ENDCLASS.

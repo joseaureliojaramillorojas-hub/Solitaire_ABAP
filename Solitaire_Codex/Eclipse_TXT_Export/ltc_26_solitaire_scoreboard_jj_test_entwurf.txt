@@ -1,0 +1,81 @@
+*"* use this source file for your ABAP unit test classes
+CLASS ltc_solitaire_scoreboard DEFINITION
+  FINAL
+  FOR TESTING
+  RISK LEVEL HARMLESS
+  DURATION SHORT.
+
+  PRIVATE SECTION.
+    DATA cut TYPE REF TO zcl_26_solitaire_scoreboard_jj.
+
+    METHODS setup.
+    METHODS add_entry_speichert_spieler FOR TESTING.
+    METHODS get_entries_sortiert_absteigend FOR TESTING.
+    METHODS clear_leert_scoreboard FOR TESTING.
+ENDCLASS.
+
+
+CLASS ltc_solitaire_scoreboard IMPLEMENTATION.
+  METHOD setup.
+    cut = NEW #( ).
+  ENDMETHOD.
+
+
+  METHOD add_entry_speichert_spieler.
+    cut->add_entry(
+      iv_spielername = `Aurelio`
+      iv_punkte      = 25
+    ).
+
+    DATA(entries) = cut->get_entries( ).
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = 1
+      act = lines( entries )
+    ).
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = `Aurelio`
+      act = entries[ 1 ]-spielername
+    ).
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = 25
+      act = entries[ 1 ]-punkte
+    ).
+  ENDMETHOD.
+
+
+  METHOD get_entries_sortiert_absteigend.
+    cut->add_entry(
+      iv_spielername = `A`
+      iv_punkte      = 10
+    ).
+
+    cut->add_entry(
+      iv_spielername = `B`
+      iv_punkte      = 50
+    ).
+
+    DATA(entries) = cut->get_entries( ).
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = `B`
+      act = entries[ 1 ]-spielername
+    ).
+  ENDMETHOD.
+
+
+  METHOD clear_leert_scoreboard.
+    cut->add_entry(
+      iv_spielername = `Aurelio`
+      iv_punkte      = 25
+    ).
+
+    cut->clear( ).
+
+    DATA(entries) = cut->get_entries( ).
+
+    cl_abap_unit_assert=>assert_initial( act = entries ).
+  ENDMETHOD.
+ENDCLASS.

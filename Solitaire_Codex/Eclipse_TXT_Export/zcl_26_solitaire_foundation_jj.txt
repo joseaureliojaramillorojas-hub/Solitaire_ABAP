@@ -1,0 +1,44 @@
+CLASS zcl_26_solitaire_foundation_jj DEFINITION
+  PUBLIC
+  INHERITING FROM zcl_26_solitaire_stapel_jj FINAL
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    INTERFACES zif_26_solitaire_foundation_jj.
+
+    METHODS constructor.
+
+methods ist_zug_gueltig redEFINITION.
+
+  PROTECTED SECTION.
+
+  PRIVATE SECTION.
+    DATA ziel_farbe TYPE string.
+ENDCLASS.
+
+
+CLASS zcl_26_solitaire_foundation_jj IMPLEMENTATION.
+  METHOD constructor.
+    super->constructor( ).
+  ENDMETHOD.
+
+  method ist_zug_gueltig.
+      CASE TYPE OF iv_stapel.
+  WHEN TYPE zcl_26_solitaire_tableau_jj.
+    rv_ist_gueltig = abap_true.
+
+  WHEN TYPE zcl_26_solitaire_ablagest_jj.
+    rv_ist_gueltig = abap_false.
+
+  WHEN TYPE zcl_26_solitaire_foundation_jj.
+    rv_ist_gueltig = abap_false.
+
+  WHEN TYPE zcl_26_solitaire_talon_jj.
+    rv_ist_gueltig = abap_false.
+ENDCASE.
+  endmethod.
+ENDCLASS.
+
+
+
+

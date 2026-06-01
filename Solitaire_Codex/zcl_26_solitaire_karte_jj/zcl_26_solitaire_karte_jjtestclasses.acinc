@@ -1,0 +1,60 @@
+*"* use this source file for your ABAP unit test classes
+CLASS ltcl_karte DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    DATA cut TYPE REF TO zcl_26_solitaire_karte_jj.
+
+    METHODS dreht_auf FOR TESTING RAISING cx_static_check.
+
+    METHODS drehe_zu  FOR TESTING RAISING cx_static_check.
+
+    METHODS farbe_rot FOR TESTING RAISING cx_static_check.
+
+    METHODS wert_9    FOR TESTING RAISING cx_static_check.
+
+    METHODS farbe_karo FOR TESTING RAISING cx_static_check.
+
+    METHODS setup.
+ENDCLASS.
+
+
+CLASS ltcl_karte IMPLEMENTATION.
+  METHOD setup.
+    cut = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KARO'
+                                         iv_wert      = 9
+                                         iv_ist_offen = abap_false ).
+  ENDMETHOD.
+
+
+  METHOD dreht_auf.
+    cut->drehe_um( ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = cut->ist_offen( ) ).
+  ENDMETHOD.
+
+
+  METHOD drehe_zu.
+    cut->drehe_um( ).
+    cut->drehe_um( ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = cut->ist_offen( ) ).
+  ENDMETHOD.
+
+
+  METHOD farbe_rot.
+    cl_abap_unit_assert=>assert_equals( exp = 'ROT'
+                                        act = cut->get_kartenfarbe( ) ).
+  ENDMETHOD.
+
+
+  METHOD wert_9.
+    cl_abap_unit_assert=>assert_equals( exp = 9
+                                        act = cut->get_wert( ) ).
+  ENDMETHOD.
+
+  method farbe_karo.
+    cl_abap_unit_assert=>assert_equals( exp = 'KARO'
+                                        act = cut->get_farbe( ) ).
+  endmethod.
+ENDCLASS.

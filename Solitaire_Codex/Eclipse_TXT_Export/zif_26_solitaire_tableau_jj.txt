@@ -1,0 +1,7 @@
+INTERFACE zif_26_solitaire_tableau_jj PUBLIC.
+
+"!Methode, welche immer die oberste Karte in dem Stapel aufdeckt, sobald die oberste Karte verdeckt ist.
+  METHODS decke_oberste_auf.
+ENDINTERFACE.
+
+
