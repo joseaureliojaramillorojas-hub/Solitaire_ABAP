@@ -1,0 +1,236 @@
+*&---------------------------------------------------------------------*
+*& Report zr_26_solitaire_report_v2_jj
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zr_26_solitaire_report_v2_jj.
+
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME.
+  PARAMETERS p_name TYPE c LENGTH 30 DEFAULT 'Spieler'.
+  PARAMETERS p_act  TYPE c LENGTH 10 DEFAULT 'START'.
+  PARAMETERS p_cnt  TYPE i DEFAULT 1.
+SELECTION-SCREEN END OF BLOCK b1.
+
+DATA spiel      TYPE REF TO zcl_26_solitaire_spiel.
+DATA spieler    TYPE REF TO zcl_26_solitaire_spieler_jj.
+DATA scoreboard TYPE REF TO zcl_26_solitaire_scoreboard_jj.
+DATA gv_action  TYPE c LENGTH 10.
+
+START-OF-SELECTION.
+  PERFORM spiel_initialisieren.
+  PERFORM aktion_ausfuehren.
+  PERFORM spielfeld_anzeigen.
+
+
+FORM spiel_initialisieren.
+  spiel = NEW #( ).
+
+  spieler = NEW #( iv_name  = CONV string( p_name )
+                   io_spiel = spiel ).
+
+  scoreboard = NEW #( ).
+
+  spiel->mischen( ).
+  spiel->karten_legen( ).
+ENDFORM.
+
+
+FORM aktion_ausfuehren.
+  DATA lv_spielername TYPE string.
+
+  gv_action = p_act.
+  TRANSLATE gv_action TO UPPER CASE.
+
+  CASE gv_action.
+    WHEN 'START'.
+      " Keine Aktion: Es wird nur ein neues Spiel angezeigt.
+
+    WHEN 'HELP'.
+      " Hilfe wird unten automatisch angezeigt.
+
+    WHEN 'TALON'.
+      PERFORM talon_ziehen USING p_cnt.
+
+    WHEN 'DEMO'.
+      PERFORM talon_ziehen USING 3.
+
+    WHEN 'QUIT'.
+      lv_spielername = spieler->get_name( ).
+
+      scoreboard->add_entry( iv_spielername = lv_spielername
+                             iv_punkte      = spiel->score ).
+
+    WHEN OTHERS.
+      WRITE: / 'Unbekannte Aktion:', gv_action.
+      WRITE / 'Nutze START, HELP, TALON, DEMO oder QUIT.'.
+      WRITE /.
+  ENDCASE.
+ENDFORM.
+
+
+FORM talon_ziehen USING iv_anzahl TYPE i.
+  DATA lv_anzahl TYPE i.
+
+  lv_anzahl = iv_anzahl.
+
+  IF lv_anzahl < 1.
+    lv_anzahl = 1.
+  ENDIF.
+
+  DO lv_anzahl TIMES.
+    spieler->ziehe_vom_vorrat( ).
+  ENDDO.
+ENDFORM.
+
+
+FORM spielfeld_anzeigen.
+  DATA lv_spielername TYPE string.
+
+  lv_spielername = spieler->get_name( ).
+
+  WRITE / 'SOLITAIRE'.
+  WRITE / '========='.
+  WRITE: / 'Spieler:', lv_spielername.
+  WRITE: / 'Aktion: ', gv_action.
+  WRITE: / 'Score:  ', spiel->score.
+  WRITE /.
+
+  PERFORM tableaus_anzeigen.
+  WRITE /.
+  PERFORM talon_und_ablage_anzeigen.
+  WRITE /.
+  PERFORM scoreboard_anzeigen.
+  WRITE /.
+  PERFORM hilfe_anzeigen.
+ENDFORM.
+
+
+FORM tableaus_anzeigen.
+  DATA index      TYPE i.
+  DATA tableau    TYPE REF TO zcl_26_solitaire_tableau_jj.
+  DATA stapel     TYPE REF TO zcl_26_solitaire_stapel_jj.
+  DATA index_text TYPE c LENGTH 2.
+  DATA titel      TYPE string.
+
+  WRITE / 'TABLEAU'.
+  WRITE / '-------'.
+
+  DO 7 TIMES.
+    index = sy-index.
+    tableau = spiel->get_tableau( index ).
+    stapel = tableau.
+    WRITE index TO index_text.
+    CONCATENATE 'Tableau' index_text INTO titel SEPARATED BY space.
+
+    PERFORM stapel_anzeigen USING titel
+                                  stapel.
+  ENDDO.
+ENDFORM.
+
+
+FORM talon_und_ablage_anzeigen.
+  DATA talon          TYPE REF TO zcl_26_solitaire_talon_jj.
+  DATA ablage         TYPE REF TO zcl_26_solitaire_ablagest_jj.
+  DATA talon_size     TYPE i.
+  DATA ablage_size    TYPE i.
+  DATA oberste_ablage TYPE REF TO zcl_26_solitaire_karte_jj.
+
+  talon = spiel->get_talon( ).
+  ablage = spiel->get_ablage( ).
+  talon_size = talon->get_size( ).
+  ablage_size = ablage->get_size( ).
+
+  WRITE / 'TALON / ABLAGE'.
+  WRITE / '--------------'.
+  WRITE: / 'Talon Karten: ', talon_size.
+  WRITE: / 'Ablage Karten:', ablage_size.
+
+  IF ablage_size > 0.
+    oberste_ablage = ablage->get_oberste_karte( ).
+    WRITE / 'Oberste Ablagekarte: '.
+    PERFORM karte_anzeigen USING oberste_ablage.
+  ENDIF.
+ENDFORM.
+
+
+FORM stapel_anzeigen USING iv_titel  TYPE string
+                           io_stapel TYPE REF TO zcl_26_solitaire_stapel_jj.
+
+  DATA size  TYPE i.
+  DATA index TYPE i.
+  DATA karte TYPE REF TO zcl_26_solitaire_karte_jj.
+
+  size = io_stapel->get_size( ).
+
+  WRITE: / iv_titel, '- Karten:', size.
+
+  IF size = 0.
+    WRITE / '  leer'.
+    RETURN.
+  ENDIF.
+
+  DO size TIMES.
+    index = sy-index.
+    karte = io_stapel->get_karte( index ).
+
+    WRITE: / ' ', index, ':'.
+    PERFORM karte_anzeigen USING karte.
+  ENDDO.
+ENDFORM.
+
+
+FORM karte_anzeigen USING io_karte TYPE REF TO zcl_26_solitaire_karte_jj.
+  DATA lv_ist_offen TYPE abap_bool.
+  DATA lv_farbe     TYPE string.
+  DATA lv_wert      TYPE i.
+
+  IF io_karte IS NOT BOUND.
+    WRITE 'keine Karte'.
+    RETURN.
+  ENDIF.
+
+  lv_ist_offen = io_karte->ist_offen( ).
+
+  IF lv_ist_offen = abap_true.
+    lv_farbe = io_karte->get_farbe( ).
+    lv_wert = io_karte->get_wert( ).
+    WRITE: lv_farbe, lv_wert.
+  ELSE.
+    WRITE '[verdeckt]'.
+  ENDIF.
+ENDFORM.
+
+
+FORM scoreboard_anzeigen.
+  DATA entries TYPE zif_26_solitaire_scoreboard_jj=>ty_scoreboard_entries.
+
+  FIELD-SYMBOLS <entry> LIKE LINE OF entries.
+
+  WRITE / 'SCOREBOARD'.
+  WRITE / '----------'.
+
+  entries = scoreboard->get_entries( ).
+
+  IF entries IS INITIAL.
+    WRITE / 'Noch kein Eintrag. Beende mit Aktion QUIT, um einen Eintrag zu erzeugen.'.
+    RETURN.
+  ENDIF.
+
+  LOOP AT entries ASSIGNING <entry>.
+    WRITE: / sy-tabix, <entry>-spielername, <entry>-punkte.
+  ENDLOOP.
+ENDFORM.
+
+
+FORM hilfe_anzeigen.
+  WRITE / 'HILFE'.
+  WRITE / '-----'.
+  WRITE / 'p_act = START : Neues Spiel anzeigen'.
+  WRITE / 'p_act = HELP  : Hilfe anzeigen'.
+  WRITE / 'p_act = TALON : Karte(n) vom Talon ziehen. Anzahl ueber p_cnt.'.
+  WRITE / 'p_act = DEMO  : Drei Karten vom Talon ziehen und Zustand anzeigen'.
+  WRITE / 'p_act = QUIT  : Spiel beenden und Scoreboard-Eintrag erzeugen'.
+  WRITE /.
+  WRITE / 'Hinweis: Dieser Report ist die erste sichtbare Oberflaeche.'.
+  WRITE / 'Er startet pro Ausfuehrung ein neues Spiel. Dauerhaftes Weiterspielen braucht danach Speichern/Laden oder eine echte Dialogoberflaeche.'.
+ENDFORM.

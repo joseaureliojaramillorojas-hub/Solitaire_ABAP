@@ -1,0 +1,103 @@
+*"* use this source file for your ABAP unit test classes
+CLASS lcl_new_stapel DEFINITION INHERITING FROM zcl_26_solitaire_stapel_jj.
+ENDCLASS.
+
+
+CLASS lcl_new_stapel IMPLEMENTATION.
+
+ENDCLASS.
+
+
+CLASS ltcl_stapel DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    DATA m_cut   TYPE REF TO lcl_new_stapel.
+    DATA m_karte TYPE REF TO zcl_26_solitaire_karte_jj.
+
+    METHODS richtige_groesse FOR TESTING.
+    METHODS setup.
+    METHODS richtige_karte FOR TESTING.
+    METHODS remove_card    FOR TESTING RAISING cx_static_check.
+    METHODS add_cards      FOR TESTING RAISING cx_static_check.
+    METHODS remove_2_cards FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+
+CLASS ltcl_stapel IMPLEMENTATION.
+  METHOD setup.
+    m_cut = NEW lcl_new_stapel( ).
+    m_karte = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'HERZ'
+                                             iv_wert      = 11
+                                             iv_ist_offen = abap_false ).
+    m_cut->add_card( m_karte ).
+  ENDMETHOD.
+
+
+  METHOD richtige_groesse.
+    DATA(groesse) = m_cut->get_size( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = groesse ).
+  ENDMETHOD.
+
+
+  METHOD richtige_karte.
+    DATA(karte) = m_cut->get_oberste_karte( ).
+    cl_abap_unit_assert=>assert_equals( exp = 11
+                                        act = karte->get_wert( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 'HERZ'
+                                        act = karte->get_farbe( ) ).
+  ENDMETHOD.
+
+
+  METHOD remove_card.
+    m_karte = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KARO'
+                                             iv_wert      = 12
+                                             iv_ist_offen = abap_false ).
+    m_cut->add_card( m_karte ).
+    m_cut->remove_card( ).
+    DATA(karte) = m_cut->get_oberste_karte( ).
+    cl_abap_unit_assert=>assert_equals( exp = 'HERZ'
+                                        act = karte->get_farbe( ) ).
+  ENDMETHOD.
+
+
+  METHOD add_cards.
+    DATA lt_test_karten TYPE lcl_new_stapel=>ty_karten.
+
+    DATA(karte1) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KREUZ'
+                                                  iv_wert      = 3
+                                                  iv_ist_offen = abap_false ).
+    DATA(karte2) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KARO'
+                                                  iv_wert      = 13
+                                                  iv_ist_offen = abap_false ).
+    APPEND karte1 TO lt_test_karten.
+    APPEND karte2 TO lt_test_karten.
+    m_cut->add_cards( lt_test_karten ).
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = m_cut->get_size( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 13
+                                        act = m_cut->get_oberste_karte( )->get_wert( ) ).
+  ENDMETHOD.
+
+  METHOD remove_2_cards.
+    "given
+    DATA lt_test_karten TYPE lcl_new_stapel=>ty_karten.
+
+    DATA(karte1) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KREUZ'
+                                                  iv_wert      = 3
+                                                  iv_ist_offen = abap_false ).
+    DATA(karte2) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KARO'
+                                                  iv_wert      = 13
+                                                  iv_ist_offen = abap_false ).
+    APPEND karte1 TO lt_test_karten.
+    APPEND karte2 TO lt_test_karten.
+    m_cut->add_cards( lt_test_karten ).
+
+    "when
+    m_cut->remove_cards_from( 2 ).
+    cl_abap_unit_assert=>assert_equals( exp = 1 act = m_cut->get_size( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 11 act = m_cut->get_oberste_karte( )->get_wert( ) ).
+  ENDMETHOD.
+ENDCLASS.

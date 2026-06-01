@@ -1,0 +1,50 @@
+*"* use this source file for your ABAP unit test classes
+CLASS ltcl_scoreboard DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    METHODS entry_added             FOR TESTING RAISING cx_static_check.
+    METHODS get_entries_absteigend  FOR TESTING RAISING cx_static_check.
+    METHODS table_empty_after_clear FOR TESTING RAISING cx_static_check.
+    METHODS setup.
+
+    DATA cut TYPE REF TO zcl_26_solitaire_scoreboard_jj.
+ENDCLASS.
+
+
+CLASS ltcl_scoreboard IMPLEMENTATION.
+  METHOD setup.
+    cut = NEW #( ).
+  ENDMETHOD.
+
+
+  METHOD entry_added.
+    cut->add_entry( iv_spielername = 'Aurelio'
+                    iv_punkte      = 25 ).
+    DATA(anzahl) = lines( cut->get_entries( ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = anzahl ).
+  ENDMETHOD.
+
+
+  METHOD get_entries_absteigend.
+    cut->add_entry( iv_spielername = 'Hans Peter'
+                    iv_punkte      = 1000 ).
+    cut->add_entry( iv_spielername = 'Rudolf'
+                    iv_punkte      = 10 ).
+    DATA(temp) = cut->get_entries( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 10
+                                        act = temp[ 2 ]-punkte ).
+  ENDMETHOD.
+
+
+  METHOD table_empty_after_clear.
+    cut->add_entry( iv_spielername = 'Hans Peter'
+                    iv_punkte      = 1000 ).
+    cut->clear( ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = lines( cut->get_entries( ) ) ).
+  ENDMETHOD.
+ENDCLASS.

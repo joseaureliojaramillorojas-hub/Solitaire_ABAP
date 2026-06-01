@@ -1,0 +1,244 @@
+*"* use this source file for your ABAP unit test classes
+CLASS ltc_solitaire_spiel DEFINITION
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    DATA cut TYPE REF TO zcl_26_solitaire_spiel. "CUT = Class Under Test
+
+    METHODS setup.
+    METHODS score_increase_to_goal         FOR TESTING.
+    METHODS score_increase_reveal_card     FOR TESTING RAISING cx_static_check.
+    METHODS score_decrease_talon_reset     FOR TESTING RAISING cx_static_check.
+    METHODS mischen_different_oberste      FOR TESTING RAISING cx_static_check.
+    METHODS stapel_size_korrekt_nach_legen FOR TESTING RAISING cx_static_check.
+    METHODS gewonnen                       FOR TESTING RAISING cx_static_check.
+    METHODS ist_nicht_gewonnen             FOR TESTING RAISING cx_static_check.
+    METHODS leerer_talon_wird_auffuellen   FOR TESTING RAISING cx_static_check.
+    METHODS karte_von_talon_ziehen         FOR TESTING RAISING cx_static_check.
+    METHODS gueltiger_zug                  FOR TESTING RAISING cx_static_check.
+    METHODS koenig_auf_leeres_tableau      FOR TESTING RAISING cx_static_check.
+    METHODS im_tableau_verschieben         FOR TESTING RAISING cx_static_check.
+    METHODS gueltiger_zug_auf_foundation   FOR TESTING RAISING cx_static_check.
+    METHODS karo_8_ins_ziel                FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+
+CLASS ltc_solitaire_spiel IMPLEMENTATION.
+  METHOD setup.
+    cut = NEW #( ).
+  ENDMETHOD.
+
+
+  METHOD score_increase_to_goal.
+    "when
+    cut->update_score( 'KARTE_TO_ZIEL' ).
+    "then
+    cl_abap_unit_assert=>assert_equals( exp = 10
+                                        act = cut->score ).
+  ENDMETHOD.
+
+
+  METHOD score_increase_reveal_card.
+    "when
+    cut->update_score( 'DECK_AUF' ).
+    "then
+    cl_abap_unit_assert=>assert_equals( exp = 5
+                                        act = cut->score ).
+  ENDMETHOD.
+
+
+  METHOD score_decrease_talon_reset.
+    "when
+    cut->update_score( 'TALON_RESET' ).
+    "then
+    cl_abap_unit_assert=>assert_equals( exp = -20
+                                        act = cut->score ).
+  ENDMETHOD.
+
+
+  METHOD mischen_different_oberste.
+    DATA(karte1) = cut->get_oberste_von_allen_karten( ).
+    cut->mischen( ).
+    DATA(karte2) = cut->get_oberste_von_allen_karten( ).
+
+    cl_abap_unit_assert=>assert_true( boolc( karte1 <> karte2 ) ).
+  ENDMETHOD.
+
+
+  METHOD stapel_size_korrekt_nach_legen.
+    cut->karten_legen( ).
+    DATA(tableau_1) = cut->get_tableau( 1 ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = tableau_1->get_size( ) ).
+    DATA(tableau_7) = cut->get_tableau( 7 ).
+    cl_abap_unit_assert=>assert_equals( exp = 7
+                                        act = tableau_7->get_size( ) ).
+  ENDMETHOD.
+
+
+  METHOD ist_nicht_gewonnen.
+    cut->ist_gewonnen( ).
+
+    cl_abap_unit_assert=>assert_false( act = abap_false ).
+  ENDMETHOD.
+
+
+  METHOD gewonnen.
+  ENDMETHOD.
+
+
+  METHOD leerer_talon_wird_auffuellen.
+    DATA(talon) = cut->get_talon( ).
+    DATA(ablage) = cut->get_ablage( ).
+    DATA(karte1) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KREUZ'
+                                                  iv_wert      = 3
+                                                  iv_ist_offen = abap_true ).
+    DATA(karte2) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KARO'
+                                                  iv_wert      = 13
+                                                  iv_ist_offen = abap_true ).
+    ablage->add_card( iv_card = karte1 ).
+    ablage->add_card( iv_card = karte2 ).
+    cut->talon_auffuellen( ablage->karten_an_talon( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = talon->get_size( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = ablage->get_size( ) ).
+  ENDMETHOD.
+
+
+  METHOD karte_von_talon_ziehen.
+    DATA(talon) = cut->get_talon( ).
+    DATA(ablage) = cut->get_ablage( ).
+    DATA(karte1) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KREUZ'
+                                                  iv_wert      = 3
+                                                  iv_ist_offen = abap_false ).
+    DATA(karte2) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KARO'
+                                                  iv_wert      = 13
+                                                  iv_ist_offen = abap_false ).
+    talon->add_card( karte1 ).
+    talon->add_card( karte2 ).
+    cut->ziehe_von_talon( ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = talon->get_size( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = ablage->get_size( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 'KARO'
+                                        act = ablage->get_karte( 1 )->get_farbe( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 'KREUZ'
+                                        act = talon->get_karte( 1 )->get_farbe( ) ).
+  ENDMETHOD.
+
+
+  METHOD gueltiger_zug.
+    DATA(karten_block) = NEW zcl_26_solitaire_tableau_jj( ).
+    DATA(auf_stapel) = NEW zcl_26_solitaire_tableau_jj( ).
+    DATA(pik_8) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'PIK'
+                                                 iv_wert      = 8
+                                                 iv_ist_offen = abap_true ).
+    DATA(karo_9) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KARO'
+                                                  iv_wert      = 9
+                                                  iv_ist_offen = abap_true ).
+
+    karten_block->add_card( iv_card = pik_8 ).
+    auf_stapel->add_card( iv_card = karo_9 ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = cut->ist_tableau_zug_gueltig( iv_karten_block = karten_block
+                                                                            iv_auf_stapel   = auf_stapel ) ).
+  ENDMETHOD.
+
+
+  METHOD koenig_auf_leeres_tableau.
+    DATA(karten_block) = NEW zcl_26_solitaire_tableau_jj( ).
+    DATA(auf_stapel) = NEW zcl_26_solitaire_tableau_jj( ).
+    DATA(pik_8) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'PIK'
+                                                 iv_wert      = 12
+                                                 iv_ist_offen = abap_true ).
+    DATA(karo_9) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KARO'
+                                                  iv_wert      = 13
+                                                  iv_ist_offen = abap_true ).
+    karten_block->add_card( iv_card = karo_9 ).
+    karten_block->add_card( iv_card = pik_8 ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = cut->ist_tableau_zug_gueltig( iv_karten_block = karten_block
+                                                                            iv_auf_stapel   = auf_stapel ) ).
+  ENDMETHOD.
+
+
+  METHOD im_tableau_verschieben.
+    DATA(karten_block) = NEW zcl_26_solitaire_tableau_jj( ).
+    DATA(auf_stapel) = NEW zcl_26_solitaire_tableau_jj( ).
+    DATA(von_stapel) = NEW zcl_26_solitaire_tableau_jj( ).
+    DATA(pik_8) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'PIK'
+                                                 iv_wert      = 8
+                                                 iv_ist_offen = abap_true ).
+    DATA(karo_9) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KARO'
+                                                  iv_wert      = 9
+                                                  iv_ist_offen = abap_true ).
+    DATA(verdeckte) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KREUZ'
+                                                     iv_wert      = 2
+                                                     iv_ist_offen = abap_false ).
+    DATA(auf_karte) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KREUZ'
+                                                     iv_wert      = 10
+                                                     iv_ist_offen = abap_false ).
+    von_stapel->add_card( iv_card = verdeckte ).
+    von_stapel->add_card( iv_card = karo_9 ).
+    von_stapel->add_card( iv_card = pik_8 ).
+    karten_block->add_card( iv_card = karo_9 ).
+    karten_block->add_card( iv_card = pik_8 ).
+    auf_stapel->add_card( iv_card = auf_karte ).
+
+    cut->karten_im_tableau_verschieben( karten_block = karten_block
+                                        auf_stapel   = auf_stapel
+                                        von_stapel   = von_stapel ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = von_stapel->get_size( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = auf_stapel->get_size( ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 8
+                                        act = auf_stapel->get_oberste_karte( )->get_wert( ) ).
+  ENDMETHOD.
+
+
+  METHOD gueltiger_zug_auf_foundation.
+    DATA(karte) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KREUZ'
+                                                 iv_wert      = 10
+                                                 iv_ist_offen = abap_true ).
+    DATA(auf_karte) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KREUZ'
+                                                     iv_wert      = 9
+                                                     iv_ist_offen = abap_true ).
+    DATA(auf_stapel) = NEW zcl_26_solitaire_foundation_jj( ).
+    DATA(von_stapel) = NEW zcl_26_solitaire_tableau_jj( ).
+    auf_stapel->add_card( iv_card = auf_karte ).
+    von_stapel->add_card( iv_card = karte ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = cut->ist_foundation_zug_gueltig( karte       = karte
+                                                                               ziel_stapel = auf_stapel ) ).
+  ENDMETHOD.
+
+
+  METHOD karo_8_ins_ziel.
+    DATA(karte) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KARO'
+                                                 iv_wert      = ( 8 )
+                                                 iv_ist_offen = abap_true ).
+    DATA(auf_stapel) = NEW zcl_26_solitaire_foundation_jj( ).
+    DATA(auf_karte) = NEW zcl_26_solitaire_karte_jj( iv_farbe     = 'KARO'
+                                                     iv_wert      = ( 7 )
+                                                     iv_ist_offen = abap_true ).
+    DATA(von_stapel) = NEW zcl_26_solitaire_tableau_jj( ).
+    von_stapel->add_card( iv_card = karte ).
+    auf_stapel->add_card( iv_card = auf_karte ).
+    cut->karte_auf_foundation( karte       = karte
+                               ziel_stapel = auf_stapel
+                               von_stapel  = von_stapel ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 8
+                                        act = auf_stapel->get_oberste_karte( )->get_wert( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = von_stapel->get_size( ) ).
+  ENDMETHOD.
+
+ENDCLASS.

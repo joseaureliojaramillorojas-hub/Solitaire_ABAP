@@ -1,0 +1,52 @@
+*"* use this source file for your ABAP unit test classes
+CLASS ltcl_talon DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    DATA tableau    TYPE REF TO zcl_26_solitaire_tableau_jj.
+    DATA foundation TYPE REF TO zcl_26_solitaire_foundation_jj.
+    DATA talon      TYPE REF TO zcl_26_solitaire_talon_jj.
+    DATA ablage     TYPE REF TO zcl_26_solitaire_ablagest_jj.
+
+    METHODS zug_auf_tableau      FOR TESTING RAISING cx_static_check.
+    METHODS zug_auf_talon        FOR TESTING RAISING cx_static_check.
+    METHODS zug_auf_foundation   FOR TESTING RAISING cx_static_check.
+    METHODS zug_auf_ablagestapel FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+
+CLASS ltcl_talon IMPLEMENTATION.
+  METHOD zug_auf_tableau.
+    talon = NEW zcl_26_solitaire_talon_jj( ).
+    tableau = NEW zcl_26_solitaire_tableau_jj( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = talon->ist_zug_gueltig( tableau ) ).
+  ENDMETHOD.
+
+
+  METHOD zug_auf_talon.
+    talon = NEW zcl_26_solitaire_talon_jj( ).
+    talon = NEW zcl_26_solitaire_talon_jj( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = talon->ist_zug_gueltig( talon ) ).
+  ENDMETHOD.
+
+
+  METHOD zug_auf_foundation.
+    talon = NEW zcl_26_solitaire_talon_jj( ).
+    foundation = NEW zcl_26_solitaire_foundation_jj( ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = talon->ist_zug_gueltig( foundation ) ).
+  ENDMETHOD.
+
+
+  METHOD zug_auf_ablagestapel.
+    talon = NEW zcl_26_solitaire_talon_jj( ).
+    ablage = NEW zcl_26_solitaire_ablagest_jj( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = talon->ist_zug_gueltig( ablage ) ).
+  ENDMETHOD.
+ENDCLASS.

@@ -1,0 +1,68 @@
+CLASS zcl_26_solitaire_tableau_jj DEFINITION
+  PUBLIC
+  INHERITING FROM zcl_26_solitaire_stapel_jj FINAL
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    INTERFACES zif_26_solitaire_tableau_jj.
+
+    ALIASES decke_oberste_auf FOR zif_26_solitaire_tableau_jj~decke_oberste_auf.
+
+    METHODS constructor.
+
+    METHODS remove_card     REDEFINITION.
+
+    METHODS ist_zug_gueltig REDEFINITION.
+
+  PROTECTED SECTION.
+
+  PRIVATE SECTION.
+
+ENDCLASS.
+
+
+CLASS zcl_26_solitaire_tableau_jj IMPLEMENTATION.
+  METHOD constructor.
+    super->constructor( ).
+  ENDMETHOD.
+
+
+  METHOD zif_26_solitaire_tableau_jj~decke_oberste_auf.
+    DATA(karte) = get_oberste_karte( ).
+    IF karte IS BOUND.
+      " checkt, obdie oOjektreferenz befÃ¼llt ist oder nicht. Wenn nicht tuhe nichts.
+      IF karte->ist_offen( ) = abap_false.
+        karte->drehe_um( ).
+      ENDIF.
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD remove_card.
+    super->remove_card( ).
+    decke_oberste_auf( ).
+  ENDMETHOD.
+
+
+  METHOD ist_zug_gueltig.
+    "diese Methode schaut, auf welche Stapel ich nach Spielregel theoretisch legen könnte. Also nicht ob ein konkreter Spielzug legal ist, sondern, ob er Ã¼berhaupt "anfragbar" ist.
+    CASE TYPE OF iv_stapel.
+      WHEN TYPE zcl_26_solitaire_tableau_jj.
+        rv_ist_gueltig = abap_true.
+
+      WHEN TYPE zcl_26_solitaire_ablagest_jj.
+        rv_ist_gueltig = abap_false.
+
+      WHEN TYPE zcl_26_solitaire_foundation_jj.
+        rv_ist_gueltig = abap_true.
+
+      WHEN TYPE zcl_26_solitaire_talon_jj.
+        rv_ist_gueltig = abap_false.
+    ENDCASE.
+  ENDMETHOD.
+ENDCLASS.
+
+
+
+
+
